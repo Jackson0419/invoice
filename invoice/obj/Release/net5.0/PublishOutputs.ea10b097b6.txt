@@ -1,0 +1,14 @@
+C:\Users\jacksonchin\Desktop\22\invoice.exe
+C:\Users\jacksonchin\Desktop\22\invoice.dll
+C:\Users\jacksonchin\Desktop\22\invoice.deps.json
+C:\Users\jacksonchin\Desktop\22\invoice.runtimeconfig.json
+C:\Users\jacksonchin\Desktop\22\invoice.pdb
+C:\Users\jacksonchin\Desktop\22\Aspose.Cells.dll
+C:\Users\jacksonchin\Desktop\22\Microsoft.Win32.SystemEvents.dll
+C:\Users\jacksonchin\Desktop\22\PugPdf.Core.dll
+C:\Users\jacksonchin\Desktop\22\System.Drawing.Common.dll
+C:\Users\jacksonchin\Desktop\22\System.Security.Cryptography.Pkcs.dll
+C:\Users\jacksonchin\Desktop\22\runtimes\win\lib\netcoreapp3.0\Microsoft.Win32.SystemEvents.dll
+C:\Users\jacksonchin\Desktop\22\runtimes\unix\lib\netcoreapp3.0\System.Drawing.Common.dll
+C:\Users\jacksonchin\Desktop\22\runtimes\win\lib\netcoreapp3.0\System.Drawing.Common.dll
+C:\Users\jacksonchin\Desktop\22\runtimes\win\lib\netcoreapp3.0\System.Security.Cryptography.Pkcs.dll
