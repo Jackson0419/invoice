@@ -217,13 +217,13 @@ namespace invoice
                                         case "REMARKS":
                                         case "TITLE":
                                         case "NAME LIST":
-                                        case "更期":
+                                        case "更期(特別事項)":
                                         case "ALL REMARKS":
-                                        case "日期":
-                                        case "Name":
+                                        case "日期(特別事項)":
+                                        case "Name(特別事項)":
                                         case "":
-                                        case "Salary":
-                                        case "Reason":
+                                        case "Salary(特別事項)":
+                                        case "Reason(特別事項)":
                                             break;
                                         default:
                                             timeList.Add(worksheet.Cells[6, j].Value.ToString());
@@ -234,7 +234,11 @@ namespace invoice
 
 
                             }
+                            for (int j = 0; j <= cols; j++)
+                            {
 
+                                var oo = worksheet.Cells[6, j].Value;
+                            }
 
                             for (int j = 0; j <= cols; j++)
                             {
@@ -687,7 +691,7 @@ namespace invoice
                     string description = string.Empty;
 
 
-                    var dateList = companyList[q].staffLists[i].duty.Select(x => new { x.date, x.shift }).ToList();
+                    var dateList = companyList[q].staffLists[i].duty.Select(x => new { x.date, x.dutyHours }).ToList();
 
                     for (int e = 0; e < dateList.Count; e++)
                     {
@@ -703,7 +707,7 @@ namespace invoice
                                 description += "<br>";
                             }
                         }
-                        description += DateTime.ParseExact(dateList[e].date.ToString(), "dd-MM-yyyy", CultureInfo.InvariantCulture).ToString("dd/M") + "(" + dateList[e].shift + ")";
+                        description += DateTime.ParseExact(dateList[e].date.ToString(), "dd-MM-yyyy", CultureInfo.InvariantCulture).ToString("dd/M") + "(" + dateList[e].dutyHours + ")";
 
                     }
                     companyList[q].staffLists[i].title = title;
