@@ -15,7 +15,7 @@ namespace invoice
         public string month { get; set; }
         public string invoiceDate { get; set; }
         public string invoiceNum { get; set; }
-        public string invoiceCustomerNum { get; set; }
+        public string invoiceNoForCompanySalary { get; set; }
         public string invoiceMonth { get; set; }
         public string companyOutPutPath { get; set; }
 
@@ -45,6 +45,7 @@ namespace invoice
         public string remark { get; set; }
         public decimal totalSalary { get; set; }
         public decimal totalSalaryOld { get; set; }
+        public decimal totalSalaryForCompany { get; set; }
         public string pdfDescription { get; set; }
         public string title { get; set; }
         public List<duty> duty = new List<duty>();
@@ -71,6 +72,7 @@ namespace invoice
         public string dutyHours { get; set; }
         public string title { get; set; }
         public string salary { get; set; }
+        public string companySalary { get; set; }
         public string reason { get; set; }
 
 
