@@ -71,7 +71,7 @@ namespace invoice
         public string dutyHours { get; set; }
         public string title { get; set; }
         public string salary { get; set; }
-
+        public string reason { get; set; }
 
 
     }
@@ -81,5 +81,14 @@ namespace invoice
         public string hours { get; set; }
         public string title { get; set; }
         public string salary { get; set; }
+    }
+
+    public class specialEvent
+    {
+        public string date { get; set; }
+        public string name { get; set; }
+        public string shift { get; set; }
+        public string salary { get; set; }
+        public string reason { get; set; }
     }
 }

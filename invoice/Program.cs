@@ -26,7 +26,7 @@ namespace invoice
     th {border:1px solid;
     }* {
  font-size: 100%;
- font-family: verdana;
+ font-family: Times New Roman, Times, serif;
 }
  
     table {width: 100%;
@@ -51,14 +51,15 @@ namespace invoice
         public static string outputStaffInvoiceFolder = string.Empty;
         public static string generalFolder = desktopPath + "\\" + "invoice\\general\\";
         public static List<companyDuty> companyDuties = new List<companyDuty>();
-
-
+ 
 
 
         static async Task Main(string[] args)
         {
+           
             try
-            {
+            {  
+              
                 Console.OutputEncoding = Encoding.Unicode;
 
                 string url = $"http://58.176.128.146/test.php";
@@ -133,6 +134,7 @@ namespace invoice
 
                         for (int v = 0; v < wb.Worksheets.Count(); v++)
                         {
+                            List<specialEvent> specialEventsList = new List<specialEvent>();
                             List<staffList> staffNameList = new List<staffList>();
                             company company = new company();
 
@@ -238,6 +240,34 @@ namespace invoice
                             {
 
                                 var oo = worksheet.Cells[6, j].Value;
+                                if (oo != null)
+                                {
+                                    if (oo.Equals("日期(特別事項)"))
+                                    {
+                                        for (int i = 7; i <= rows; i++)
+                                        {
+                                            
+                                            var date = worksheet.Cells[i, j].Value != null ? DateTime.Parse(worksheet.Cells[i, j].Value.ToString()).ToString("dd-MM-yyyy") : null;
+                                            var name = worksheet.Cells[i, j + 1].Value != null ? worksheet.Cells[i, j + 1].Value.ToString() : null; 
+                                            var shift = worksheet.Cells[i, j + 2].Value != null ? worksheet.Cells[i, j + 2].Value.ToString() : null;
+                                            var salary = worksheet.Cells[i, j + 3].Value != null ? worksheet.Cells[i, j + 3].Value.ToString() : null;
+                                            var reason = worksheet.Cells[i, j + 4].Value != null ? worksheet.Cells[i, j + 4].Value.ToString() : null;
+
+                                            if(name != null)
+                                            {
+                                                specialEventsList.Add(new specialEvent
+                                                {
+                                                    date = date,
+                                                    name = name,
+                                                    shift = shift,
+                                                    salary = salary,
+                                                    reason = reason
+                                                });
+                                            }
+                                           
+                                        }
+                                    }
+                                }
                             }
 
                             for (int j = 0; j <= cols; j++)
@@ -416,7 +446,12 @@ namespace invoice
                                     {
                                         if (salaryList[e].hours == staffList[i].duty[q].dutyHours && salaryList[e].title == staffList[i].duty[q].title)
                                         {
+
+                                            
                                             staffList[i].duty[q].salary = salaryList[e].salary;
+                                            
+                                          
+                                        
                                         }
 
                                     }
@@ -480,7 +515,28 @@ namespace invoice
                                 }
                                 for (int e = 0; e < staffNameList[i].duty.Count; e++)
                                 {
-                                    staffNameList[i].totalSalary += Convert.ToDecimal(staffNameList[i].duty[e].salary);
+                                    var salary = Convert.ToInt32(staffNameList[i].duty[e].salary);
+
+                                    for (int p = 0; p < specialEventsList.Count; p++)
+                                    {
+                                        if (specialEventsList[p].name == staffList[i].name && specialEventsList[p].date == staffList[i].duty[e].date && specialEventsList[p].shift == staffList[i].duty[e].dutyTime)
+                                        {
+
+                                            if (specialEventsList[p].salary == "T8")
+                                            {
+                                                salary *= 2; 
+                                                staffList[i].duty[e].salary = salary.ToString();
+                                            }
+                                            else
+                                            {
+                                                decimal minutes = Convert.ToInt32(staffList[i].duty[e].dutyHours) * 60;
+                                                decimal revisedSalary = (minutes + Convert.ToInt32(specialEventsList[p].salary))/ minutes * salary; 
+                                                salary = decimal.ToInt32(revisedSalary);
+                                                staffList[i].duty[e].salary = decimal.ToInt32(revisedSalary).ToString();
+                                            }
+                                        }
+                                    }
+                                    staffNameList[i].totalSalary += salary;
 
                                 }
 
@@ -689,7 +745,7 @@ namespace invoice
                     titleList = titleList.Distinct().ToList();
                     string title = string.Join(",", titleList);
                     string description = string.Empty;
-
+                    string staffDescription = string.Empty;
 
                     var dateList = companyList[q].staffLists[i].duty.Select(x => new { x.date, x.dutyHours }).ToList();
 
@@ -699,22 +755,29 @@ namespace invoice
                         if (e >= 1)
                         {
                             description += ", ";
+                            staffDescription += ", ";
                         }
                         if (e != 0)
                         {
-                            if (e % 3 == 0)
+                            if (e % 6 == 0)
                             {
                                 description += "<br>";
+                               
+                            }
+                            if( e% 4 == 0)
+                            {
+                                staffDescription += "<br>";
                             }
                         }
+                        staffDescription += DateTime.ParseExact(dateList[e].date.ToString(), "dd-MM-yyyy", CultureInfo.InvariantCulture).ToString("dd/M") + "(" + dateList[e].dutyHours + ")"; 
                         description += DateTime.ParseExact(dateList[e].date.ToString(), "dd-MM-yyyy", CultureInfo.InvariantCulture).ToString("dd/M") + "(" + dateList[e].dutyHours + ")";
 
                     }
                     companyList[q].staffLists[i].title = title;
-                    companyList[q].staffLists[i].pdfDescription = description;
+                    companyList[q].staffLists[i].pdfDescription = staffDescription;
 
                     body += @$"<tr>
-               <td>{companyList[q].staffLists[i].name}</td>
+               <td style= 'font-family: verdana'>{companyList[q].staffLists[i].name}</td>
                <td>{title}</td>
                <td>{description}</td>
                <td style='text-align: center;'>{companyList[q].staffLists[i].duty.Count}</td>
@@ -764,13 +827,13 @@ namespace invoice
               </table>
               <table>
                 <tr>
-                  <td style='font-size: 11px;'>This payment is now due. Please settle the payment as soon as possible. Cheque should be payable to ‘Hygiene First Company Limited’ <br>
+                  <td style='font-size: 11px;font-family: verdana'>This payment is now due. Please settle the payment as soon as possible. Cheque should be payable to ‘Hygiene First Company Limited’ <br>
                     <br> The amount may also be directly deposited into our BOC account : (Account Number: 012-742-2-019880-4). <br>
                     <br>Please email info@hygienefirstgroup.com / Whatsapp 6086 2287 the bank slip to us for our checking. For billing enquiries, please contact our Accounting Department at 3618 9330 (Mr Chau).
                   </td>
                 </tr>
                 <tr>
-                  <td style='font-size: 11px;'> Late Payment Surcharge : <br> Should bills remain unpaid after 7 days after the postmark date on the envelope, a 5% surcharge will be added to the outstanding amount. <br> After 14 days, a 10% interest will be imposed on the outstanding amount. </td>
+                  <td style='font-size: 11px;font-family: verdana'> Late Payment Surcharge : <br> Should bills remain unpaid after 7 days after the postmark date on the envelope, a 5% surcharge will be added to the outstanding amount. <br> After 14 days, a 10% interest will be imposed on the outstanding amount. </td>
                 </tr>
               </table>
               <br>
@@ -779,7 +842,7 @@ namespace invoice
           </body>
         </html>");
 
-                pdf.SaveAs(companyList[q].companyOutPutPath + companyList[q].customerName + "總invoice_"+ companyList[q].invoiceMonth +"月"+ ".pdf");
+                pdf.SaveAs(companyList[q].companyOutPutPath + companyList[q].customerName +q+ "總invoice_"+ companyList[q].invoiceMonth +"月"+ ".pdf");
 
             }
 
@@ -878,6 +941,12 @@ namespace invoice
                  </tr>";
 
                 }
+
+               
+
+
+
+
                 allStaffList[i].totalSalary = totalSalary.ToString();
 
                 var pdf = await renderer.RenderHtmlAsPdfAsync($@" <!DOCTYPE html>
@@ -913,13 +982,13 @@ namespace invoice
               </table>
               <table>
                 <tr>
-                  <td style='font-size: 11px;'>This payment is now due. Please settle the payment as soon as possible. Cheque should be payable to ‘Hygiene First Company Limited’ <br>
+                  <td style='font-size: 11px;font-family: verdana'>This payment is now due. Please settle the payment as soon as possible. Cheque should be payable to ‘Hygiene First Company Limited’ <br>
                     <br> The amount may also be directly deposited into our BOC account : (Account Number: 012-742-2-019880-4). <br>
                     <br>Please email info@hygienefirstgroup.com / Whatsapp 6086 2287 the bank slip to us for our checking. For billing enquiries, please contact our Accounting Department at 3618 9330 (Mr Chau).
                   </td>
                 </tr>
                 <tr>
-                  <td style='font-size: 11px;'> Late Payment Surcharge : <br> Should bills remain unpaid after 7 days after the postmark date on the envelope, a 5% surcharge will be added to the outstanding amount. <br> After 14 days, a 10% interest will be imposed on the outstanding amount. </td>
+                  <td style='font-size: 11px;font-family: verdana'> Late Payment Surcharge : <br> Should bills remain unpaid after 7 days after the postmark date on the envelope, a 5% surcharge will be added to the outstanding amount. <br> After 14 days, a 10% interest will be imposed on the outstanding amount. </td>
                 </tr>
               </table>
               <br>
