@@ -695,6 +695,7 @@ namespace invoice
 
                         await allStaffInvoice(allStaffList);
                         bankAccount(allStaffList);
+                        companyHistory(companyList);
                     }
                 }
                 else
@@ -1058,6 +1059,47 @@ namespace invoice
             }
             return "";
          
+        }
+
+        public static string companyHistory(List<company> companyList)
+        {
+            Workbook yoyoyo = new Workbook();
+
+            // 得到第一個工作表。
+            Worksheet sheet1 = yoyoyo.Worksheets[0];
+            sheet1.Cells.SetColumnWidth(1, 20.0);
+            sheet1.Cells.SetColumnWidth(2, 30.0);
+            sheet1.Cells.SetColumnWidth(3, 10.0);
+            sheet1.Cells.SetColumnWidth(4, 10.0);
+            sheet1.Cells.SetColumnWidth(5, 10.0);
+            sheet1.Cells.SetColumnWidth(6, 10.0);
+            sheet1.Cells.SetColumnWidth(7, 10.0);
+            // 獲取工作表的單元格集合
+            Cells cells = sheet1.Cells;
+
+            // 為單元格設置值
+            Aspose.Cells.Cell cell = cells["A1"];
+            cell.PutValue("院舍名稱");
+            cell = cells["B1"];
+            cell.PutValue("聯絡人");
+            cell = cells["C1"];
+            cell.PutValue("地址"); 
+
+            for (int i = 0; i < companyList.Count; i++)
+            {
+                cell = cells[@$"A{i + 2}"];
+                cell.PutValue(companyList[i].customerName);
+                cell = cells[@$"B{i + 2}"];
+                cell.PutValue(companyList[i].contactPeople);
+                cell = cells[@$"C{i + 2}"]; 
+                cell.PutValue(companyList[i].address);
+               
+            }
+
+            // 保存 Excel 文件。
+            yoyoyo.Save(outputFolder + "company_output.xlsx", SaveFormat.Xlsx);
+
+            return "";
         }
     }
 }
