@@ -564,7 +564,7 @@ namespace invoice
                                 }
                                 for (int e = 0; e < staffNameList[i].duty.Count; e++)
                                 {
-                                    var salary = Convert.ToInt32(staffNameList[i].duty[e].salary);
+                                    var salary = Convert.ToDouble(staffNameList[i].duty[e].salary);
                                     var companySalary = Convert.ToInt32(staffNameList[i].duty[e].companySalary);
                                     for (int p = 0; p < specialEventsList.Count; p++)
                                     {
@@ -573,26 +573,27 @@ namespace invoice
 
                                             if (specialEventsList[p].salary == "T8")
                                             {
-                                                salary *= 2;
+                                                salary *= 1.5;
                                                 companySalary *= 2;
                                                 staffList[i].duty[e].salary = salary.ToString();
                                                 staffList[i].duty[e].companySalary = companySalary.ToString();
                                             }
                                             else
                                             {
-                                                decimal minutes = Convert.ToInt32(staffList[i].duty[e].dutyHours) * 60;
-                                                decimal revisedSalary = (minutes + Convert.ToInt32(specialEventsList[p].salary))/ minutes * salary;
+
+                                                decimal minutes = Convert.ToInt32(staffList[i].duty[e].dutyHours) * 60; 
+                                                double revisedSalary = (Convert.ToDouble(minutes) + Convert.ToDouble(specialEventsList[p].salary)) / Convert.ToDouble(minutes) * salary;
                                                 decimal revisedCompanySalary = (minutes + Convert.ToInt32(specialEventsList[p].salary)) / minutes * companySalary;
-                                                salary = decimal.ToInt32(revisedSalary);
+                                                salary = Convert.ToInt32(revisedSalary);
                                                 companySalary = decimal.ToInt32(revisedCompanySalary);
-                                                staffList[i].duty[e].salary = decimal.ToInt32(revisedSalary).ToString();
+                                                staffList[i].duty[e].salary = Convert.ToInt32(revisedSalary).ToString();
                                                 staffList[i].duty[e].companySalary = decimal.ToInt32(revisedCompanySalary).ToString();
 
                                             }
                                         }
                                     }
                                     staffNameList[i].totalSalaryForCompany += companySalary;
-                                    staffNameList[i].totalSalary += salary;
+                                    staffNameList[i].totalSalary += Convert.ToDecimal(salary);
 
                                 }
 
