@@ -22,15 +22,16 @@ namespace invoice
 
         public List<staffList> staffLists = new List<staffList>();
     }
-  
+
     public class companyDuty
-    { 
+    {
+        public List<tittleDuty> titleDuty = new List<tittleDuty>();
         public List<duty> duty = new List<duty>();
         public string pdfDescription { get; set; }
         public string companyName { get; set; }
         public string title { get; set; }
         public decimal oldTotalSalary { get; set; }
-       
+
     }
 
     public class staffList
@@ -49,6 +50,8 @@ namespace invoice
         public string pdfDescription { get; set; }
         public string title { get; set; }
         public List<duty> duty = new List<duty>();
+
+        public List<tittleDuty> titleDuty = new List<tittleDuty>();
 
     }
     public class allStaff
@@ -74,6 +77,8 @@ namespace invoice
         public string salary { get; set; }
         public string companySalary { get; set; }
         public string reason { get; set; }
+        public string companyUnitPrice { get; set; }
+        public string staffUnitPrice { get; set; }
 
 
     }
@@ -93,4 +98,14 @@ namespace invoice
         public string salary { get; set; }
         public string reason { get; set; }
     }
+
+    public class tittleDuty {
+        public string title { get; set; }
+        public string hours { get; set; }
+        public string companyUnitPrice { get; set; }
+        public string staffUnitPrice { get; set; }
+        public List<duty> dutyList { get; set; }
+
+
+        }
 }
