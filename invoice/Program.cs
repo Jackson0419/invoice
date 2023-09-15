@@ -15,28 +15,29 @@ namespace invoice
     class Program
     {
         public static string style = @"<style>
-    table,
-    td,
-    th {border:1px solid;
-    }* {
- font-size: 100%;
- font-family: Times New Roman, Times, serif;
+    table, td, th {
+    border:1px solid;
+}
+* {
+     font-size: 100%;
+     font-family: Times New Roman, Times, serif;
+}
+ table {
+    width: 100%;
+     border-collapse: collapse;
+     table-layout: fixed;
+}
+ td {
+    font - weight: bold;
+     overflow-wrap: break-word;
+     word-wrap: break-word;
+}
+ .center {
+    margin: auto;
+     width: 90%;
+     padding: 10px;
 }
  
-    table {width: 100%;
-      border-collapse: collapse;
-     table-layout: fixed;
-            }
-
-    td {font - weight: bold;
-  overflow-wrap: break-word;
-  word-wrap: break-word;
-    }
-
-    .center {margin: auto;
-      width: 90%;
-      padding: 10px;
-    }
   </style>";
         public static List<company> companyList = new List<company>();
         public static List<allStaff> allStaffList = new List<allStaff>();
@@ -46,6 +47,11 @@ namespace invoice
         public static string outputFolder = desktopPath + "\\" + "invoice\\" + DateTime.Now.ToString("yyyyMMdd") + "\\output\\";
         public static string outputStaffInvoiceFolder = string.Empty;
         public static string generalFolder = desktopPath + "\\" + "invoice\\general\\";
+        public static string outputCompanyInvoiceHtmlFolder = desktopPath + "\\" + "invoice\\" + DateTime.Now.ToString("yyyyMMdd") + "\\ouputHtml\\company\\";
+        public static string outputStaffInvoiceHtmlFolder = desktopPath + "\\" + "invoice\\" + DateTime.Now.ToString("yyyyMMdd") + "\\ouputHtml\\staff\\";
+        public static string inputHtmlFolder = desktopPath + "\\" + "invoice\\" + DateTime.Now.ToString("yyyyMMdd") + "\\inputHtml\\";
+        public static string outputHtmlFolder = desktopPath + "\\" + "invoice\\" + DateTime.Now.ToString("yyyyMMdd") + "\\inputHtml\\output\\";
+     
         public static List<companyDuty> companyDuties = new List<companyDuty>();
 
 
@@ -83,32 +89,67 @@ namespace invoice
                 {
                     Directory.CreateDirectory(outputFolder + "staff_invoice\\");
                 }
+                if (!Directory.Exists(outputCompanyInvoiceHtmlFolder))
+                {
+                    Directory.CreateDirectory(outputCompanyInvoiceHtmlFolder);
+                }
+                if (!Directory.Exists(inputHtmlFolder))
+                {
+                    Directory.CreateDirectory(inputHtmlFolder);
+                }
+                if (!Directory.Exists(outputHtmlFolder))
+                {
+                    Directory.CreateDirectory(outputHtmlFolder);
+                }
+                if (!Directory.Exists(outputStaffInvoiceHtmlFolder))
+                {
+                    Directory.CreateDirectory(outputStaffInvoiceHtmlFolder);
+                }
+                
+                 
 
 
+                using var client = new HttpClient();
+                var response = client.GetAsync(url).GetAwaiter().GetResult();
+                var content = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();// response value
                 Console.WriteLine("將 timesheet.xlsx 放入資料夾 " + timeSheetFolder);
                 Console.WriteLine("將 logo.jpg和company_salary.xlsx和staff_salary.xlsx和bank.xlsx 放入資料夾 " + generalFolder);
-                Console.WriteLine("完成後請輸入 1 然後按 ENTER");
+                Console.WriteLine("1 = Gen Invoice, 2 = Gen HtmlCode");
                 string check1 = Console.ReadLine();
-                if (check1 == "1")
+                if (content == "success")
+                {
+
+                    if(check1 == "2")
+                    {
+                        var renderer = new HtmlToPdf();
+                        DirectoryInfo d = new DirectoryInfo(inputHtmlFolder);
+                        var matchFolder = d.GetFiles("*.txt");
+                        for (int i =0;i< matchFolder.Length;i++)  
+                        {
+                            Console.WriteLine(matchFolder[i].FullName +" Processing");
+                            string text = File.ReadAllText(matchFolder[i].FullName);  
+                            var pdf = await renderer.RenderHtmlAsPdfAsync(text);
+                            var ppp = Path.GetFileNameWithoutExtension(matchFolder[i].FullName);
+                            pdf.SaveAs(outputHtmlFolder + Path.GetFileNameWithoutExtension(matchFolder[i].FullName) + ".pdf");
+                            Console.WriteLine(matchFolder[i].FullName + " Done");
+                        }
+
+                                               
+              
+                    }
+                    if (check1 == "1")
                 {
 
 
 
 
 
-                    using var client = new HttpClient();
+               
 
                     List<string> JobIdList = new List<string>();
-                    var response = client.GetAsync(url).GetAwaiter().GetResult();
-
-
-
-
-
-                    var content = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();// response value
+                    
                     //string content = "success";
-                    if (content == "success")
-                    {
+                    
 
                         Workbook wb = new Workbook(timeSheetFolder + "timesheet.xlsx");
                         /*
@@ -996,6 +1037,11 @@ namespace invoice
 
                 pdf.SaveAs(companyList[q].companyOutPutPath + companyList[q].customerName + companyList[q].invoiceNoForCompanySalary + "總invoice_" + companyList[q].invoiceMonth + "月" + ".pdf");
 
+                using (var sw = new StreamWriter(outputCompanyInvoiceHtmlFolder + companyList[q].customerName + companyList[q].invoiceNoForCompanySalary + "總invoice_" + companyList[q].invoiceMonth + "月.txt"))
+                {
+                    sw.WriteLine(html);
+                }
+
             }
 
 
@@ -1136,7 +1182,7 @@ namespace invoice
                 allStaffList[i].totalSalary = totalSalary.ToString();
                 if (option == "1")
                 {
-                    var pdf = await renderer.RenderHtmlAsPdfAsync($@" <!DOCTYPE html>
+                    string html = $@" <!DOCTYPE html>
         <html>
           {style}
           <body>
@@ -1184,9 +1230,15 @@ namespace invoice
               <b>For and on behalf of <br> Hygiene First Company Limited </b>
             </div>
           </body>
-        </html>");
+        </html>";
+                    var pdf = await renderer.RenderHtmlAsPdfAsync(html);
 
-                    pdf.SaveAs(outputFolder + "\\staff_invoice\\" + $@"{allStaffList[i].name}.pdf");
+                    pdf.SaveAs(outputFolder + "\\staff_invoice\\" + $@"{allStaffList[i].name}.pdf"); 
+                    
+                    using (var sw = new StreamWriter(outputStaffInvoiceHtmlFolder + $@"{allStaffList[i].name}.txt"))
+                    {
+                        sw.WriteLine(html);
+                    }
                 }
             }
             return "";
