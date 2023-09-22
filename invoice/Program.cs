@@ -53,7 +53,7 @@ namespace invoice
         public static string outputHtmlFolder = desktopPath + "\\" + "invoice\\" + DateTime.Now.ToString("yyyyMMdd") + "\\inputHtml\\output\\";
      
         public static List<companyDuty> companyDuties = new List<companyDuty>();
-
+        public static string invoiceDate=string.Empty;
 
 
         static async Task Main(string[] args)
@@ -64,7 +64,7 @@ namespace invoice
 
                 Console.OutputEncoding = Encoding.Unicode;
 
-                string url = $"http://58.176.128.146/test.php";
+                string url = $"https://testsds123-669967cd5270.herokuapp.com/";
 
 
 
@@ -210,11 +210,14 @@ namespace invoice
                             company.month = worksheet.Cells[1, 6].Value != null ? DateTime.Parse(worksheet.Cells[1, 6].Value.ToString()).ToString("MM-yyyy") : null;
                             company.invoiceMonth = worksheet.Cells[1, 6].Value != null ? DateTime.Parse(worksheet.Cells[1, 6].Value.ToString()).ToString("MM") : null;
 
+
+           
                             if (company.month != null)
                             {
                                 var monthSplitList = company.month.Split('-');
                                 var lastDay = DateTime.DaysInMonth(Int32.Parse(monthSplitList[1]), Int32.Parse(monthSplitList[0]));
                                 company.invoiceDate += lastDay + "-" + company.month;
+                                invoiceDate = lastDay + "-" + monthSplitList[0] + "-" + monthSplitList[1];
                             }
                             company.invoiceNum = worksheet.Cells[2, 6].Value != null ? worksheet.Cells[2, 6].Value.ToString() : null;
                             company.invoiceNoForCompanySalary = worksheet.Cells[3, 6].Value != null ? worksheet.Cells[3, 6].Value.ToString() : null;
@@ -612,23 +615,26 @@ namespace invoice
                                 {
                                     if (BankSheet.Cells[0, i].Value.ToString() == "中文名")
                                     {
-                                        System.Diagnostics.Debug.WriteLine(BankSheet.Cells[e, i].Value.ToString());
-                                        for (int q = 0; q < staffNameList.Count; q++)
+                                        if (BankSheet.Cells[e, i].Value != null)
                                         {
-
-                                            if (staffNameList[q].name == BankSheet.Cells[e, i].Value.ToString())
+                                            System.Diagnostics.Debug.WriteLine(BankSheet.Cells[e, i].Value.ToString());
+                                            for (int q = 0; q < staffNameList.Count; q++)
                                             {
-                                                staffNameList[q].bankAccount = BankSheet.Cells[e, 2].Value != null ? BankSheet.Cells[e, 2].Value.ToString() : null;
-                                                staffNameList[q].engName = BankSheet.Cells[e, 1].Value != null ? BankSheet.Cells[e, 1].Value.ToString() : null;
-                                                staffNameList[q].firstRegisterFees = BankSheet.Cells[e, 3].Value != null ? BankSheet.Cells[e, 3].Value.ToString() : null;
-                                                staffNameList[q].uniformFees = BankSheet.Cells[e, 4].Value != null ? BankSheet.Cells[e, 4].Value.ToString() : null;
-                                                staffNameList[q].cancelFees = BankSheet.Cells[e, 5].Value != null ? BankSheet.Cells[e, 5].Value.ToString() : null;
-                                                staffNameList[q].otherFees = BankSheet.Cells[e, 6].Value != null ? BankSheet.Cells[e, 6].Value.ToString() : null;
-                                                staffNameList[q].remark = BankSheet.Cells[e, 8].Value != null ? BankSheet.Cells[e, 8].Value.ToString() : null;
 
+                                                if (staffNameList[q].name == BankSheet.Cells[e, i].Value.ToString())
+                                                {
+                                                    staffNameList[q].bankAccount = BankSheet.Cells[e, 2].Value != null ? BankSheet.Cells[e, 2].Value.ToString() : null;
+                                                    staffNameList[q].engName = BankSheet.Cells[e, 1].Value != null ? BankSheet.Cells[e, 1].Value.ToString() : null;
+                                                    staffNameList[q].firstRegisterFees = BankSheet.Cells[e, 3].Value != null ? BankSheet.Cells[e, 3].Value.ToString() : null;
+                                                    staffNameList[q].uniformFees = BankSheet.Cells[e, 4].Value != null ? BankSheet.Cells[e, 4].Value.ToString() : null;
+                                                    staffNameList[q].cancelFees = BankSheet.Cells[e, 5].Value != null ? BankSheet.Cells[e, 5].Value.ToString() : null;
+                                                    staffNameList[q].otherFees = BankSheet.Cells[e, 6].Value != null ? BankSheet.Cells[e, 6].Value.ToString() : null;
+                                                    staffNameList[q].remark = BankSheet.Cells[e, 8].Value != null ? BankSheet.Cells[e, 8].Value.ToString() : null;
+
+
+                                                }
 
                                             }
-
                                         }
 
                                     }
@@ -648,11 +654,13 @@ namespace invoice
                                 for (int e = 0; e < staffNameList[i].duty.Count; e++)
                                 {
                                     var salary = Convert.ToDouble(staffNameList[i].duty[e].salary);
-                                    var companySalary = Convert.ToInt32(staffNameList[i].duty[e].companySalary);
+                                    var companySalary = Convert.ToDouble(staffNameList[i].duty[e].companySalary);
                                     for (int p = 0; p < specialEventsList.Count; p++)
                                     {
                                         if (specialEventsList[p].name == staffNameList[i].name && specialEventsList[p].date == staffNameList[i].duty[e].date && specialEventsList[p].shift == staffNameList[i].duty[e].dutyTime)
                                         {
+
+                                            staffNameList[i].duty[e].reason = specialEventsList[p].reason;
 
                                             if (specialEventsList[p].salary == "T8")
                                             {
@@ -664,9 +672,9 @@ namespace invoice
                                             else
                                             {
 
-                                                decimal minutes = Convert.ToInt32(staffNameList[i].duty[e].dutyHours) * 60;
+                                                decimal minutes = Convert.ToDecimal(staffNameList[i].duty[e].dutyHours) * 60;
                                                 double revisedSalary = (Convert.ToDouble(minutes) + Convert.ToDouble(specialEventsList[p].salary)) / Convert.ToDouble(minutes) * salary;
-                                                decimal revisedCompanySalary = (minutes + Convert.ToInt32(specialEventsList[p].salary)) / minutes * companySalary;
+                                                decimal revisedCompanySalary = (minutes + Convert.ToInt32(specialEventsList[p].salary)) / minutes * Convert.ToInt32(companySalary);
                                                 salary = Convert.ToInt32(revisedSalary);
                                                 companySalary = decimal.ToInt32(revisedCompanySalary);
                                                 staffNameList[i].duty[e].salary = Convert.ToInt32(revisedSalary).ToString();
@@ -675,7 +683,7 @@ namespace invoice
                                             }
                                         }
                                     }
-                                    staffNameList[i].totalSalaryForCompany += companySalary;
+                                    staffNameList[i].totalSalaryForCompany += Convert.ToDecimal(companySalary);
                                     staffNameList[i].totalSalary += Convert.ToDecimal(salary);
 
                                 }
@@ -904,6 +912,10 @@ namespace invoice
                         for (int o = 0; o < companyList[q].staffLists[i].titleDuty[e].dutyList.Count; o++)
                         {
                             description += DateTime.ParseExact(companyList[q].staffLists[i].titleDuty[e].dutyList[o].date.ToString(), "dd-MM-yyyy", CultureInfo.InvariantCulture).ToString("dd/M") + "(" + companyList[q].staffLists[i].titleDuty[e].dutyList[o].shift + ")";
+                            if (!string.IsNullOrEmpty(companyList[q].staffLists[i].titleDuty[e].dutyList[o].reason))
+                            {
+                                description += "(" + companyList[q].staffLists[i].titleDuty[e].dutyList[o].reason + ")";
+                            }
                             if (o == companyList[q].staffLists[i].titleDuty[e].dutyList.Count - 1)
                             {
 
@@ -995,9 +1007,9 @@ namespace invoice
               <b>Bill To:</b>
               <table>
                 <tr>
-                  <td>{companyList[q].customerName} <br> {companyList[q].address} <br>{companyList[q].contactPeople} </td>
-                  <td>Date <div style='float: right;'>{companyList[q].invoiceDate}</div>
-                    <br>Invoice No. <div style='float: right;'>{companyList[q].invoiceNum + companyList[q].invoiceMonth}</div>
+                  <td width= '421px'><b>Client Name:</b> {companyList[q].customerName} <br><b>Address:</b> {companyList[q].address} <br><b>Tel:</b> {companyList[q].contactPeople} </td>
+                  <td><b>Date:</b> <div style='float: right;'>{companyList[q].invoiceDate}</div>
+                    <br><b>Invoice No.</b> <div style='float: right;'>{companyList[q].invoiceNum}</div>
                    
                   </td>
                 </tr>
@@ -1007,8 +1019,8 @@ namespace invoice
                   <td width ='50px'>Name</td>
                   <td width ='30px'>Title</td>
                   <td width ='250px'>Description</td>
-                  <td width ='55px'>Unit Price HK$</td>
-                  <td width ='25px'>Day</td>
+                  <td width ='40px'>Unit Price HK$</td>
+                  <td width ='25px'>Qty</td>
                   <td width ='100px'>Total Amount HK$</td>
                 </tr>
                 {body}
@@ -1019,13 +1031,17 @@ namespace invoice
               </table>
               <table>
                 <tr>
-                  <td style='font-size: 11px;font-family: verdana'>This payment is now due. Please settle the payment as soon as possible. Cheque should be payable to ‘Hygiene First Company Limited’ <br>
-                    <br> The amount may also be directly deposited into our BOC account : (Account Number: 012-742-2-019880-4). <br>
-                    <br>Please email info@hygienefirstgroup.com / Whatsapp 6086 2287 the bank slip to us for our checking. For billing enquiries, please contact our Accounting Department at 3618 9330 (Mr Chau).
-                  </td>
+                  <td style='font-size: 11px;font-family: verdana'><b>Remarks:</b> <br>1.This payment is now due.  Please settle the payment as soon as possible.  Cheque should be payable to  ‘<b>Hygiene First Company Limited</b>’.<br>
+                    2.The amount may also be directly deposited into our bank account. <b>Account Number: 012-742-2-019880-4 </b>(Bank of China Hong Kong).<br>
+                    3.Please email to <b>ao@hygienefirstgroup.com</b> or Whatsapp to <b>9326 7321</b> the bank slip to us for our checking. For billing enquiries, please contact our Accounting Department at <b>3618 9333 (Ms Ng/Mr Chan)</b>.
+                    
+
+                </td>
                 </tr>
                 <tr>
-                  <td style='font-size: 11px;font-family: verdana'> Late Payment Surcharge : <br> Should bills remain unpaid after 7 days after the postmark date on the envelope, a 5% surcharge will be added to the outstanding amount. <br> After 14 days, a 10% interest will be imposed on the outstanding amount. </td>
+                  <td style='font-size: 11px;font-family: verdana'><b> Late Payment Surcharge : </b><br> 1.Should bills remain unpaid after 30 days after the postmark date on the envelope, a 5% surcharge will be added to the outstanding amount.<br>
+                    2.After <b>45 days</b>, a 10% interest will be imposed on the outstanding amount.
+                </td>
                 </tr>
               </table>
               <br>
@@ -1076,6 +1092,11 @@ namespace invoice
                         for (int o = 0; o < allStaffList[i].companyDuty[q].titleDuty[e].dutyList.Count; o++)
                         {
                             description += DateTime.ParseExact(allStaffList[i].companyDuty[q].titleDuty[e].dutyList[o].date.ToString(), "dd-MM-yyyy", CultureInfo.InvariantCulture).ToString("dd/M") + "(" + allStaffList[i].companyDuty[q].titleDuty[e].dutyList[o].shift + ")";
+
+                            if (!string.IsNullOrEmpty(allStaffList[i].companyDuty[q].titleDuty[e].dutyList[o].reason))
+                            {
+                                description += "(" + allStaffList[i].companyDuty[q].titleDuty[e].dutyList[o].reason + ")";
+                            }
 
                             if (o == allStaffList[i].companyDuty[q].titleDuty[e].dutyList.Count - 1)
                             {
@@ -1194,36 +1215,40 @@ namespace invoice
               <table height='30px'>
                 <tr>
                   <td style='text-align: center; '>
-                    <b>Invoice</b>
+                    <b>自僱人士服務紀錄表</b>
                   </td>
                 </tr>
               </table> 
+             <table>
+                <tr>
+                  <td  width ='499px'><b>備注：</b><br><b>1.自取現金支票：</b> 行政費用HKD$20/次。(地址：屯門震寰路九號好收成工業大廈10樓04室）<br><b>2.郵寄現金支票: </b>行政費用HKD$30/次 (平郵/郵局掛號 另加HKD$16/順豐到付另加HKD$18)，郵寄風險自負。<br><b>3.首次登記:</b>自僱人士獲派首次配對服務後，本公司將收取一次性HKD$50為首次登記費用。<br><b>4.更改服務酬金方式：</b> 行政費用HKD$15/次。           </td>
+                  <td><div>服務酬金結算日：<br>{invoiceDate}</div>
+                
+                   
+                  </td>
+                </tr>
+              </table>
               <table>
                 <tr>  
 
-                  <td  width ='100px'>Company</td>
-                  <td width ='50px'>Name</td>
-                  <td width ='40px'>Title</td>
-                  <td  width ='250px'>Description</td>
-                    <td width ='55px'>Unit Price HK$</td>
-                  <td width ='30px'>Day</td>
-                  <td  width ='100px'>Total Amount HK$</td>
+                  <td  width ='100px'>服務地點</td>
+                  <td width ='50px'>自僱人士名稱</td>
+                  <td width ='40px'>稱謂</td>
+                  <td  width ='250px'>服務日期</td>
+                    <td width ='55px'>服務酬金</td>
+                  <td width ='30px'>服務次數</td>
+                  <td  width ='100px'>總服務酬金(HKD)</td>
                 </tr>
                 {body}
                 <tr>
-                  <td colspan=""6"" style='text-align: right;'>Total HK$</td>
+                  <td colspan=""6"" style='text-align: right;'>總服務酬金(HKD)</td>
                   <td style='text-align: right;'>{totalSalary}</td>
                 </tr>
               </table>
               <table>
+                
                 <tr>
-                  <td style='font-size: 11px;font-family: verdana'>This payment is now due. Please settle the payment as soon as possible. Cheque should be payable to ‘Hygiene First Company Limited’ <br>
-                    <br> The amount may also be directly deposited into our BOC account : (Account Number: 012-742-2-019880-4). <br>
-                    <br>Please email info@hygienefirstgroup.com / Whatsapp 6086 2287 the bank slip to us for our checking. For billing enquiries, please contact our Accounting Department at 3618 9330 (Mr Chau).
-                  </td>
-                </tr>
-                <tr>
-                  <td style='font-size: 11px;font-family: verdana'> Late Payment Surcharge : <br> Should bills remain unpaid after 7 days after the postmark date on the envelope, a 5% surcharge will be added to the outstanding amount. <br> After 14 days, a 10% interest will be imposed on the outstanding amount. </td>
+                  <td style='font-size: 16px;font-family: verdana'><center><I> 如對以上服務紀錄表有任何查詢，請 <b>Whatsapp 6791 6812</b> 與會計部同事聯絡。  </I></center></td>
                 </tr>
               </table>
               <br>
