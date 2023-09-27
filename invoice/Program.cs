@@ -25,7 +25,7 @@ namespace invoice
  table {
     width: 100%;
      border-collapse: collapse;
-     table-layout: fixed;
+     table-layout: auto;
 }
  td {
     font - weight: bold;
@@ -932,7 +932,7 @@ namespace invoice
                         body += @$"<tr>
                            <td style= 'font-family: verdana'>{companyList[q].staffLists[i].name}</td>
                            <td>{title}</td>
-                           <td width=50px>{description}</td>
+                           <td>{description}</td>
                            <td style='text-align: right;'>{companyList[q].staffLists[i].titleDuty[e].companyUnitPrice}</td>
                            <td style='text-align: center;'>{companyList[q].staffLists[i].titleDuty[e].dutyList.Count}</td>
                            <td style='text-align: right;'>{eachDutytotal}</td>
@@ -990,7 +990,7 @@ namespace invoice
                 }
                 var html = $@"<!DOCTYPE html>
         <html>
-          {style}
+          { style}
           <body>
             <div class='center'>
               <div>
@@ -1004,7 +1004,13 @@ namespace invoice
                   </td>
                 </tr>
               </table>
-              <b>Bill To:</b>
+               <table height='30px'>
+                <tr>
+                  <td style='text-align: left; '>
+                    <b>Bill To:</b>
+                  </td>
+                </tr>
+              </table>
               <table>
                 <tr>
                   <td width= '421px'><b>Client Name:</b> {companyList[q].customerName} <br><b>Address:</b> {companyList[q].address} <br><b>Tel:</b> {companyList[q].contactPeople} </td>
@@ -1016,12 +1022,12 @@ namespace invoice
               </table>
               <table>
                 <tr>
-                  <td width ='50px'>Name</td>
-                  <td width ='30px'>Title</td>
-                  <td width ='250px'>Description</td>
-                  <td width ='40px'>Unit Price HK$</td>
-                  <td width ='25px'>Qty</td>
-                  <td width ='100px'>Total Amount HK$</td>
+                  <td width='65px'>Name</td>
+                  <td>Title</td>
+                  <td>Description</td>
+                  <td>Unit Price HK$</td>
+                  <td>Qty</td>
+                  <td>Total Amount HK$</td>
                 </tr>
                 {body}
                 <tr>
@@ -1221,7 +1227,7 @@ namespace invoice
               </table> 
              <table>
                 <tr>
-                  <td  width ='499px'><b>備注：</b><br><b>1.自取現金支票：</b> 行政費用HKD$20/次。(地址：屯門震寰路九號好收成工業大廈10樓04室）<br><b>2.郵寄現金支票: </b>行政費用HKD$30/次 (平郵/郵局掛號 另加HKD$16/順豐到付另加HKD$18)，郵寄風險自負。<br><b>3.首次登記:</b>自僱人士獲派首次配對服務後，本公司將收取一次性HKD$50為首次登記費用。<br><b>4.更改服務酬金方式：</b> 行政費用HKD$15/次。           </td>
+                  <td  width ='499px'><b>備注：</b><br><b>1.自取現金支票：</b> 行政費用HKD$20/次。(地址：屯門震寰路九號好收成工業大廈10樓04室）<br><b>2.郵寄現金支票: </b>行政費用HKD$30/次 (平郵/郵局掛號 另加HKD$16/順豐到付另加HKD$18)，郵寄風險自負。<br><b>3.首次登記:</b>自僱人士獲派首次配對服務後，本公司將收取一次性HKD$50為首次登記費用。<br><b>4.更改服務酬金方式：</b> 行政費用HKD$20/次。           </td>
                   <td><div>服務酬金結算日：<br>{invoiceDate}</div>
                 
                    
@@ -1252,6 +1258,16 @@ namespace invoice
                 </tr>
               </table>
               <br>
+            <table>
+
+            <tr>
+                <td style='font-size: 13px;font-family: verdana'> <u>政策需知：</u> <br> 1.本公司與院舍商討更其後有權對服務作出修正、增加、刪除。 <br> 2.如服務時間 ≥7 小時， 院舍會提供最少 30 至 60 分鐘用膳時間（最終由院舍決定）。<br> 3.以下公眾假期的服務費用將按標準費用的 1.5 倍或 2 倍支付: 中秋正日 ( 1.5 倍)，冬至、農曆新年前夕、農曆年初一、二、三 ( 2 倍)。 <br> 4.八號烈風或暴風信號 或 黑色暴雨警告信號 懸掛期間之服務費用為標準費用的 1.5 倍。護理人員如在下班時仍然懸掛
+                    八號烈風或暴風信號，可獲$100交通津貼，實報實銷。 (以每滿半小時為計算單位)<br> 5. 如接單後出現甩更、遲到、病假等，所有勤工獎金一律取消，及其優先安排工作的次序會延後。
+                    <br><br><u>服務酬金需知： </u><br> 1.如有遲到，遲到之鐘數，將由正常工作時間扣除，不獲計算工資。 <br> 2.本公司每月18-22號內轉帳上月服務酬金。 <br><br>  <u>告假須知：</u> <br> 1.如需告假，請提早三個工作天(72小時)通知。
+                    <br> 2.不可自行取消由醫護服務選項，如有特殊情況，請馬上通知。如在本公司辦公以外時間(0900-2100)遇上突發事件、或需要臨時請假 請務必致電: 9044 3186 / 9502 4162 / 60862287。<br> 3.即日請假需盡快通知我們，並必須自行致電院舍請假(院舍資料/電話可看訊息上列）。
+                    <br> 4.如少於48小時內通知我們，須付港幣200元作行政費用。 <br> 5.如少於12小時內以電話通知通知甲方，須付港幣300元作行政費用。 </td>
+            </tr>
+        </table>
               <b>For and on behalf of <br> Hygiene First Company Limited </b>
             </div>
           </body>
