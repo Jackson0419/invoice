@@ -629,8 +629,10 @@ namespace invoice
                                                     staffNameList[q].uniformFees = BankSheet.Cells[e, 4].Value != null ? BankSheet.Cells[e, 4].Value.ToString() : null;
                                                     staffNameList[q].cancelFees = BankSheet.Cells[e, 5].Value != null ? BankSheet.Cells[e, 5].Value.ToString() : null;
                                                     staffNameList[q].otherFees = BankSheet.Cells[e, 6].Value != null ? BankSheet.Cells[e, 6].Value.ToString() : null;
-                                                    staffNameList[q].remark = BankSheet.Cells[e, 8].Value != null ? BankSheet.Cells[e, 8].Value.ToString() : null;
-
+                                                    staffNameList[q].urgentFees = BankSheet.Cells[e, 7].Value != null ? BankSheet.Cells[e, 7].Value.ToString() : null;
+                                                    staffNameList[q].bonus = BankSheet.Cells[e, 8].Value != null ? BankSheet.Cells[e, 8].Value.ToString() : null;
+                                                    staffNameList[q].transportFees = BankSheet.Cells[e, 9].Value != null ? BankSheet.Cells[e, 9].Value.ToString() : null;
+                                                    staffNameList[q].remark = BankSheet.Cells[e, 11].Value != null ? BankSheet.Cells[e, 11].Value.ToString() : null;
 
                                                 }
 
@@ -710,6 +712,27 @@ namespace invoice
                                     staffNameList[i].totalSalary += Convert.ToDecimal(staffNameList[i].cancelFees);
 
                                 }
+                                if (staffNameList[i].urgentFees != null)
+                                {
+
+
+                                    staffNameList[i].totalSalary += Convert.ToDecimal(staffNameList[i].urgentFees);
+
+                                }
+                                if (staffNameList[i].bonus != null)
+                                {
+
+
+                                    staffNameList[i].totalSalary += Convert.ToDecimal(staffNameList[i].bonus);
+
+                                }
+                                if (staffNameList[i].transportFees != null)
+                                {
+
+
+                                    staffNameList[i].totalSalary += Convert.ToDecimal(staffNameList[i].transportFees);
+
+                                }
                             }
 
 
@@ -748,7 +771,10 @@ namespace invoice
 
                                         otherFees = staffNameList[i].otherFees,
                                         remark = staffNameList[i].remark,
-                                        uniformFees = staffNameList[i].uniformFees
+                                        uniformFees = staffNameList[i].uniformFees,
+                                        urgentFees = staffNameList[i].urgentFees,
+                                        bonus = staffNameList[i].bonus,
+                                        transportFees = staffNameList[i].transportFees
                                     };
                                     staff.companyDuty.Add(companyDuty);
                                     allStaffList.Add(staff);
@@ -852,8 +878,14 @@ namespace invoice
             cell = cells["G1"];
             cell.PutValue("雜費");
             cell = cells["H1"];
-            cell.PutValue("TOTAL");
+            cell.PutValue("加急費");
             cell = cells["I1"];
+            cell.PutValue("獎金");
+            cell = cells["J1"];
+            cell.PutValue("交通費");
+            cell = cells["K1"];
+            cell.PutValue("TOTAL");
+            cell = cells["L1"];
             cell.PutValue("REMARK");
 
             for (int i = 0; i < allstaffList.Count; i++)
@@ -874,9 +906,15 @@ namespace invoice
                 cell = cells[@$"G{i + 2}"];
                 cell.PutValue(allstaffList[i].otherFees);
                 cell = cells[@$"H{i + 2}"];
-                cell.PutValue(allstaffList[i].totalSalary);
+                cell.PutValue(allstaffList[i].urgentFees);
                 cell = cells[@$"I{i + 2}"];
-                cell.PutValue(allstaffList[i].remark);
+                cell.PutValue(allstaffList[i].bonus);
+                cell = cells[@$"J{i + 2}"];
+                cell.PutValue(allstaffList[i].transportFees);
+                cell = cells[@$"K{i + 2}"];
+                cell.PutValue(allstaffList[i].totalSalary);
+                cell = cells[@$"L{i + 2}"];
+                cell.PutValue(allstaffList[i].remark); 
             }
 
             // 保存 Excel 文件。
@@ -900,9 +938,12 @@ namespace invoice
 
                     allTotal += companyList[q].staffLists[i].totalSalaryForCompany;
 
-
+ 
                     for (int e = 0; e < companyList[q].staffLists[i].titleDuty.Count; e++)
                     {
+                        //duty order by date asc
+                        companyList[q].staffLists[i].titleDuty[e].dutyList = companyList[q].staffLists[i].titleDuty[e].dutyList.OrderBy(x => x.date).ToList();
+
                         decimal eachDutytotal = 0;
                         string description = string.Empty;
                         string title = string.Empty;
@@ -911,6 +952,7 @@ namespace invoice
                         string dutyCount = "0";
                         for (int o = 0; o < companyList[q].staffLists[i].titleDuty[e].dutyList.Count; o++)
                         {
+                               
                             description += DateTime.ParseExact(companyList[q].staffLists[i].titleDuty[e].dutyList[o].date.ToString(), "dd-MM-yyyy", CultureInfo.InvariantCulture).ToString("dd/M") + "(" + companyList[q].staffLists[i].titleDuty[e].dutyList[o].shift + ")";
                             if (!string.IsNullOrEmpty(companyList[q].staffLists[i].titleDuty[e].dutyList[o].reason))
                             {
@@ -1095,6 +1137,9 @@ namespace invoice
                         string description = string.Empty;
                         decimal eachDutytotal = 0;
 
+                        //duty order by date asc
+                       allStaffList[i].companyDuty[q].titleDuty[e].dutyList = allStaffList[i].companyDuty[q].titleDuty[e].dutyList.OrderBy(x => x.date).ToList();
+
                         for (int o = 0; o < allStaffList[i].companyDuty[q].titleDuty[e].dutyList.Count; o++)
                         {
                             description += DateTime.ParseExact(allStaffList[i].companyDuty[q].titleDuty[e].dutyList[o].date.ToString(), "dd-MM-yyyy", CultureInfo.InvariantCulture).ToString("dd/M") + "(" + allStaffList[i].companyDuty[q].titleDuty[e].dutyList[o].shift + ")";
@@ -1201,9 +1246,55 @@ namespace invoice
 
                 }
 
+                if (allStaffList[i].urgentFees != null)
+                {
 
+                    totalSalary += decimal.Parse(allStaffList[i].urgentFees);
+                    body += @$"<tr>
+                    <td>N/A</td>
+                   <td>{allStaffList[i].name}</td>
+                   
+                   <td>N/A</td>
+                   <td>加急費</td>
+<td></td>
+                   <td style='text-align: center;'>N/A</td>
+                   <td style='text-align: right;'>{allStaffList[i].urgentFees}</td>
+                 </tr>";
 
+                }
 
+                if (allStaffList[i].bonus != null)
+                {
+
+                    totalSalary += decimal.Parse(allStaffList[i].bonus);
+                    body += @$"<tr>
+                    <td>N/A</td>
+                   <td>{allStaffList[i].name}</td>
+                   
+                   <td>N/A</td>
+                   <td>獎金</td>
+<td></td>
+                   <td style='text-align: center;'>N/A</td>
+                   <td style='text-align: right;'>{allStaffList[i].bonus}</td>
+                 </tr>";
+
+                }
+                if (allStaffList[i].transportFees != null)
+                {
+
+                    totalSalary += decimal.Parse(allStaffList[i].transportFees);
+                    body += @$"<tr>
+                    <td>N/A</td>
+                   <td>{allStaffList[i].name}</td>
+                   
+                   <td>N/A</td>
+                   <td>交通費</td>
+<td></td>
+                   <td style='text-align: center;'>N/A</td>
+                   <td style='text-align: right;'>{allStaffList[i].transportFees}</td>
+                 </tr>";
+
+                }
 
 
                 allStaffList[i].totalSalary = totalSalary.ToString();
