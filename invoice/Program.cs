@@ -51,9 +51,9 @@ namespace invoice
         public static string outputStaffInvoiceHtmlFolder = desktopPath + "\\" + "invoice\\" + DateTime.Now.ToString("yyyyMMdd") + "\\ouputHtml\\staff\\";
         public static string inputHtmlFolder = desktopPath + "\\" + "invoice\\" + DateTime.Now.ToString("yyyyMMdd") + "\\inputHtml\\";
         public static string outputHtmlFolder = desktopPath + "\\" + "invoice\\" + DateTime.Now.ToString("yyyyMMdd") + "\\inputHtml\\output\\";
-     
+
         public static List<companyDuty> companyDuties = new List<companyDuty>();
-        public static string invoiceDate=string.Empty;
+        public static string invoiceDate = string.Empty;
 
 
         static async Task Main(string[] args)
@@ -105,8 +105,8 @@ namespace invoice
                 {
                     Directory.CreateDirectory(outputStaffInvoiceHtmlFolder);
                 }
-                
-                 
+
+
 
 
                 using var client = new HttpClient();
@@ -119,55 +119,39 @@ namespace invoice
                 if (content == "success")
                 {
 
-                    if(check1 == "2")
+                    if (check1 == "2")
                     {
                         var renderer = new HtmlToPdf();
                         DirectoryInfo d = new DirectoryInfo(inputHtmlFolder);
                         var matchFolder = d.GetFiles("*.txt");
-                        for (int i =0;i< matchFolder.Length;i++)  
+                        for (int i = 0; i < matchFolder.Length; i++)
                         {
-                            Console.WriteLine(matchFolder[i].FullName +" Processing");
-                            string text = File.ReadAllText(matchFolder[i].FullName);  
+                            Console.WriteLine(matchFolder[i].FullName + " Processing");
+                            string text = File.ReadAllText(matchFolder[i].FullName);
                             var pdf = await renderer.RenderHtmlAsPdfAsync(text);
-                            var ppp = Path.GetFileNameWithoutExtension(matchFolder[i].FullName);
                             pdf.SaveAs(outputHtmlFolder + Path.GetFileNameWithoutExtension(matchFolder[i].FullName) + ".pdf");
                             Console.WriteLine(matchFolder[i].FullName + " Done");
                         }
 
-                                               
-              
+
+
                     }
                     if (check1 == "1")
-                {
+                    {
 
 
 
 
 
-               
 
-                    List<string> JobIdList = new List<string>();
-                    
-                    //string content = "success";
-                    
+
+                        List<string> JobIdList = new List<string>();
+
+                        //string content = "success";
+
 
                         Workbook wb = new Workbook(timeSheetFolder + "timesheet.xlsx");
-                        /*
-                                                for (int q = 0; q < wb.Worksheets.Count(); q++)
-                                                {
-                                                    Worksheet worksheetTest = wb.Worksheets[q];
-                                                    companyDuties.Add
-                                                        (new companyDuty
-                                                        {
-                                                            companyName = worksheetTest.Cells[3, 4].Value != null ? worksheetTest.Cells[3, 4].Value.ToString() : null,
-                                                            duty = new List<duty>()
 
-                                                        });
-
-                                                }
-                        */
-
-                        // 使用其索引獲取工作表
 
                         for (int v = 0; v < wb.Worksheets.Count(); v++)
                         {
@@ -183,7 +167,7 @@ namespace invoice
                             {
                                 continue;
                             }
-                            
+
                             Console.WriteLine("Worksheet: " + worksheet.Name);
 
                             // 獲取行數和列數
@@ -211,7 +195,7 @@ namespace invoice
                             company.invoiceMonth = worksheet.Cells[1, 6].Value != null ? DateTime.Parse(worksheet.Cells[1, 6].Value.ToString()).ToString("MM") : null;
 
 
-           
+
                             if (company.month != null)
                             {
                                 var monthSplitList = company.month.Split('-');
@@ -644,19 +628,51 @@ namespace invoice
                                 }
                             }
 
-                        
+
 
 
                             for (int i = 0; i < staffNameList.Count; i++)
                             {
-                                if (i == 10)
+                                if (i == 2)
                                 {
                                     var ggw = "";
                                 }
                                 for (int e = 0; e < staffNameList[i].duty.Count; e++)
                                 {
-                                    var salary = Convert.ToDouble(staffNameList[i].duty[e].salary);
-                                    var companySalary = Convert.ToDouble(staffNameList[i].duty[e].companySalary);
+                                    
+                                    double salary = 0;
+                                    double companySalary = 0;
+                                    try { 
+                                         salary = Convert.ToDouble(staffNameList[i].duty[e].salary);
+
+                                        if (salary == null || salary == 0)
+                                        {
+                                            throw new Exception(staffNameList[i].duty[e].title + "，" + staffNameList[i].duty[e].dutyTime + "　Staff Salary Not Found");
+                                        }
+                                    } catch (Exception) {
+
+                                        throw new Exception(staffNameList[i].duty[e].title　+"，"+staffNameList[i].duty[e].dutyTime + "　Staff Salary Not Found");
+                                    }
+
+                                    
+                                    try
+                                    {
+                                        
+
+                                        companySalary = Convert.ToDouble(staffNameList[i].duty[e].companySalary);
+
+                                        if (companySalary == null || companySalary == 0)
+                                        {
+                                            throw new Exception(staffNameList[i].duty[e].title + "，" + staffNameList[i].duty[e].dutyTime + "　Company Salary Not Found");
+                                        }
+
+                                    }
+                                    catch (Exception)
+                                    {
+
+                                        throw new Exception(staffNameList[i].duty[e].title + "，" + staffNameList[i].duty[e].dutyTime + "　Company Salary Not Found");
+                                    }
+                             
                                     for (int p = 0; p < specialEventsList.Count; p++)
                                     {
                                         if (specialEventsList[p].name == staffNameList[i].name && specialEventsList[p].date == staffNameList[i].duty[e].date && specialEventsList[p].shift == staffNameList[i].duty[e].dutyTime)
@@ -815,17 +831,17 @@ namespace invoice
                         Console.WriteLine("company invoice processing Done");
                         Console.WriteLine("要staff invoice 輸入 1, 不要staff invoice 輸入 2");
                         string check2 = Console.ReadLine();
-                        if (check2 == "1" || check2 =="2")
+                        if (check2 == "1" || check2 == "2")
                         {
-                            await allStaffInvoice(allStaffList, check2); 
+                            await allStaffInvoice(allStaffList, check2);
                             bankAccount(allStaffList);
                             companyHistory(companyList);
                         }
                         else
                         {
-                            
+
                         }
-                     
+
                     }
                 }
                 else
@@ -914,7 +930,7 @@ namespace invoice
                 cell = cells[@$"K{i + 2}"];
                 cell.PutValue(allstaffList[i].totalSalary);
                 cell = cells[@$"L{i + 2}"];
-                cell.PutValue(allstaffList[i].remark); 
+                cell.PutValue(allstaffList[i].remark);
             }
 
             // 保存 Excel 文件。
@@ -938,7 +954,7 @@ namespace invoice
 
                     allTotal += companyList[q].staffLists[i].totalSalaryForCompany;
 
- 
+
                     for (int e = 0; e < companyList[q].staffLists[i].titleDuty.Count; e++)
                     {
                         //duty order by date asc
@@ -952,7 +968,7 @@ namespace invoice
                         string dutyCount = "0";
                         for (int o = 0; o < companyList[q].staffLists[i].titleDuty[e].dutyList.Count; o++)
                         {
-                               
+
                             description += DateTime.ParseExact(companyList[q].staffLists[i].titleDuty[e].dutyList[o].date.ToString(), "dd-MM-yyyy", CultureInfo.InvariantCulture).ToString("dd/M") + "(" + companyList[q].staffLists[i].titleDuty[e].dutyList[o].shift + ")";
                             if (!string.IsNullOrEmpty(companyList[q].staffLists[i].titleDuty[e].dutyList[o].reason))
                             {
@@ -981,58 +997,10 @@ namespace invoice
                          </tr>";
 
                     }
-
-                    /* List<string> titleList = new List<string>();
-                    for (int j = 0; j < companyList[q].staffLists[i].duty.Count; j++)
-                    {
-                        titleList.Add(companyList[q].staffLists[i].duty[j].title);
-                    }
-                    titleList = titleList.Distinct().ToList();
-                    string title = string.Join(",", titleList);
-                    string description = string.Empty;
-                    string staffDescription = string.Empty;
-
-                    var dateList = companyList[q].staffLists[i].duty.Select(x => new { x.date, x.shift }).ToList();
-*/
-                    /*   for (int e = 0; e < dateList.Count; e++)
-                       {
-
-                           if (e >= 1)
-                           {
-                               description += ", ";
-                               staffDescription += ", ";
-                           }
-                           if (e != 0)
-                           {
-                               if (e % 6 == 0)
-                               {
-                                   description += "<br>";
-
-                               }
-                               if( e% 4 == 0)
-                               {
-                                   staffDescription += "<br>";
-                               }
-                           }
-                           staffDescription += DateTime.ParseExact(dateList[e].date.ToString(), "dd-MM-yyyy", CultureInfo.InvariantCulture).ToString("dd/M") + "(" + dateList[e].shift + ")"; 
-                           description += DateTime.ParseExact(dateList[e].date.ToString(), "dd-MM-yyyy", CultureInfo.InvariantCulture).ToString("dd/M") + "(" + dateList[e].shift + ")";
-
-                       }*/
-                    //companyList[q].staffLists[i].title = title;
-                    // companyList[q].staffLists[i].pdfDescription = staffDescription;
-
-
-                    /*       body += @$"<tr>
-                      <td style= 'font-family: verdana'>{companyList[q].staffLists[i].name}</td>
-                      <td>{title}</td>
-                      <td>{description}</td>
-                      <td style='text-align: center;'>{companyList[q].staffLists[i].duty.Count}</td>
-                      <td style='text-align: right;'>{companyList[q].staffLists[i].totalSalaryForCompany}</td>
-                    </tr>";*/
                 }
                 var html = $@"<!DOCTYPE html>
         <html>
-          { style}
+          {style}
           <body>
             <div class='center'>
               <div>
@@ -1109,10 +1077,7 @@ namespace invoice
             }
 
 
-
-            //--------------------------------Single
-
-            return "123";
+            return "";
         }
 
         public static async Task<string> allStaffInvoice(List<allStaff> allStaffList, string option)
@@ -1138,7 +1103,7 @@ namespace invoice
                         decimal eachDutytotal = 0;
 
                         //duty order by date asc
-                       allStaffList[i].companyDuty[q].titleDuty[e].dutyList = allStaffList[i].companyDuty[q].titleDuty[e].dutyList.OrderBy(x => x.date).ToList();
+                        allStaffList[i].companyDuty[q].titleDuty[e].dutyList = allStaffList[i].companyDuty[q].titleDuty[e].dutyList.OrderBy(x => x.date).ToList();
 
                         for (int o = 0; o < allStaffList[i].companyDuty[q].titleDuty[e].dutyList.Count; o++)
                         {
@@ -1190,11 +1155,11 @@ namespace invoice
 
 
                     body += @$"<tr>
-       <td>N/A</td>
+                   <td>N/A</td>
                    <td>{allStaffList[i].name}</td>
                    <td>N/A</td>
                    <td>取消費</td>
-<td></td>
+                   <td></td>
                    <td style='text-align: center;'>N/A</td>
                    <td style='text-align: right;'>{allStaffList[i].cancelFees}</td>
                  </tr>";
@@ -1204,11 +1169,11 @@ namespace invoice
                     totalSalary += decimal.Parse(allStaffList[i].firstRegisterFees);
 
                     body += @$"<tr>
-                           <td>N/A</td>
+                   <td>N/A</td>
                    <td>{allStaffList[i].name}</td>
                    <td>N/A</td>
                    <td>首次登記費</td>
-<td></td>
+                   <td></td>
                    <td style='text-align: center;'>N/A</td>
                    <td style='text-align: right;'>{allStaffList[i].firstRegisterFees}</td>
                  </tr>";
@@ -1218,12 +1183,11 @@ namespace invoice
 
                     totalSalary += decimal.Parse(allStaffList[i].uniformFees);
                     body += @$"<tr>
- <td>N/A</td>
+                   <td>N/A</td>
                    <td>{allStaffList[i].name}</td>
-                   
                    <td>N/A</td>
                    <td>制服費</td>
-<td></td>
+                   <td></td>
                    <td style='text-align: center;'>N/A</td>
                    <td style='text-align: right;'>{allStaffList[i].uniformFees}</td>
                  </tr>";
@@ -1236,10 +1200,9 @@ namespace invoice
                     body += @$"<tr>
                     <td>N/A</td>
                    <td>{allStaffList[i].name}</td>
-                   
                    <td>N/A</td>
                    <td>雜費</td>
-<td></td>
+                   <td></td>
                    <td style='text-align: center;'>N/A</td>
                    <td style='text-align: right;'>{allStaffList[i].otherFees}</td>
                  </tr>";
@@ -1253,10 +1216,9 @@ namespace invoice
                     body += @$"<tr>
                     <td>N/A</td>
                    <td>{allStaffList[i].name}</td>
-                   
                    <td>N/A</td>
                    <td>加急費</td>
-<td></td>
+                   <td></td>
                    <td style='text-align: center;'>N/A</td>
                    <td style='text-align: right;'>{allStaffList[i].urgentFees}</td>
                  </tr>";
@@ -1270,10 +1232,9 @@ namespace invoice
                     body += @$"<tr>
                     <td>N/A</td>
                    <td>{allStaffList[i].name}</td>
-                   
                    <td>N/A</td>
                    <td>獎金</td>
-<td></td>
+                   <td></td>
                    <td style='text-align: center;'>N/A</td>
                    <td style='text-align: right;'>{allStaffList[i].bonus}</td>
                  </tr>";
@@ -1286,10 +1247,9 @@ namespace invoice
                     body += @$"<tr>
                     <td>N/A</td>
                    <td>{allStaffList[i].name}</td>
-                   
                    <td>N/A</td>
                    <td>交通費</td>
-<td></td>
+                   <td></td>
                    <td style='text-align: center;'>N/A</td>
                    <td style='text-align: right;'>{allStaffList[i].transportFees}</td>
                  </tr>";
@@ -1365,8 +1325,8 @@ namespace invoice
         </html>";
                     var pdf = await renderer.RenderHtmlAsPdfAsync(html);
 
-                    pdf.SaveAs(outputFolder + "\\staff_invoice\\" + $@"{allStaffList[i].name}.pdf"); 
-                    
+                    pdf.SaveAs(outputFolder + "\\staff_invoice\\" + $@"{allStaffList[i].name}.pdf");
+
                     using (var sw = new StreamWriter(outputStaffInvoiceHtmlFolder + $@"{allStaffList[i].name}.txt"))
                     {
                         sw.WriteLine(html);
@@ -1379,10 +1339,10 @@ namespace invoice
 
         public static string companyHistory(List<company> companyList)
         {
-            Workbook yoyoyo = new Workbook();
+            Workbook wb = new Workbook();
 
             // 得到第一個工作表。
-            Worksheet sheet1 = yoyoyo.Worksheets[0];
+            Worksheet sheet1 = wb.Worksheets[0];
             sheet1.Cells.SetColumnWidth(1, 20.0);
             sheet1.Cells.SetColumnWidth(2, 30.0);
             sheet1.Cells.SetColumnWidth(3, 10.0);
@@ -1413,7 +1373,7 @@ namespace invoice
             }
 
             // 保存 Excel 文件。
-            yoyoyo.Save(outputFolder + "company_output.xlsx", SaveFormat.Xlsx);
+            wb.Save(outputFolder + "company_output.xlsx", SaveFormat.Xlsx);
 
             return "";
         }
