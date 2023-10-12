@@ -54,7 +54,8 @@ namespace invoice
 
         public static List<companyDuty> companyDuties = new List<companyDuty>();
         public static string invoiceDate = string.Empty;
-
+        public static totalAmountObj companyTotalAmountList = new totalAmountObj();
+        public static totalAmountObj staffTotalAmountList = new totalAmountObj();
 
         static async Task Main(string[] args)
         {
@@ -64,7 +65,7 @@ namespace invoice
 
                 Console.OutputEncoding = Encoding.Unicode;
 
-                string url = $"https://testsds123-669967cd5270.herokuapp.com/";
+               /* string url = $"https://testsds123-669967cd5270.herokuapp.com/";*/
 
 
 
@@ -109,12 +110,14 @@ namespace invoice
 
 
 
-                using var client = new HttpClient();
+              /*  using var client = new HttpClient();
                 var response = client.GetAsync(url).GetAwaiter().GetResult();
-                var content = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();// response value
+                var content = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();// response value*/
+
                 Console.WriteLine("將 timesheet.xlsx 放入資料夾 " + timeSheetFolder);
                 Console.WriteLine("將 logo.jpg和company_salary.xlsx和staff_salary.xlsx和bank.xlsx 放入資料夾 " + generalFolder);
                 Console.WriteLine("1 = Gen Invoice, 2 = Gen HtmlCode");
+                string content = "success";
                 string check1 = Console.ReadLine();
                 if (content == "success")
                 {
@@ -132,17 +135,11 @@ namespace invoice
                             pdf.SaveAs(outputHtmlFolder + Path.GetFileNameWithoutExtension(matchFolder[i].FullName) + ".pdf");
                             Console.WriteLine(matchFolder[i].FullName + " Done");
                         }
-
-
-
+                         
                     }
                     if (check1 == "1")
                     {
-
-
-
-
-
+                         
 
 
                         List<string> JobIdList = new List<string>();
@@ -155,22 +152,23 @@ namespace invoice
 
                         for (int v = 0; v < wb.Worksheets.Count(); v++)
                         {
-                            Console.WriteLine(v);
+                            Console.WriteLine();
+                            Console.WriteLine(v +"/"+wb.Worksheets.Count());
                             List<specialEvent> specialEventsList = new List<specialEvent>();
                             List<staffList> staffNameList = new List<staffList>();
                             company company = new company();
 
                             Worksheet worksheet = wb.Worksheets[v];
                             var ggg = worksheet.IsVisible;
-                            // 打印工作表名稱
+                        
                             if (worksheet.IsVisible == false)
                             {
+                                Console.WriteLine("Hidden Table");
                                 continue;
                             }
 
                             Console.WriteLine("Worksheet: " + worksheet.Name);
-
-                            // 獲取行數和列數
+ 
                             int rows = worksheet.Cells.MaxDataRow;
                             int cols = worksheet.Cells.MaxDataColumn;
 
@@ -633,10 +631,11 @@ namespace invoice
 
                             for (int i = 0; i < staffNameList.Count; i++)
                             {
-                                if (i == 2)
+                               /* if (i == 2)
                                 {
                                     var ggw = "";
-                                }
+                                }*/
+
                                 for (int e = 0; e < staffNameList[i].duty.Count; e++)
                                 {
                                     
@@ -836,6 +835,10 @@ namespace invoice
                             await allStaffInvoice(allStaffList, check2);
                             bankAccount(allStaffList);
                             companyHistory(companyList);
+
+                            companyTotalAmountList.totalAmount = companyTotalAmountList.eachTotal.Sum(e => e.total);
+                            staffTotalAmountList.totalAmount = staffTotalAmountList.eachTotal.Sum(e => e.total);
+                            totalAmount(companyTotalAmountList, staffTotalAmountList);
                         }
                         else
                         {
@@ -861,13 +864,66 @@ namespace invoice
             }
         }
 
-
-        public static string bankAccount(List<allStaff> allstaffList)
+        public static string totalAmount(totalAmountObj companyAmountList, totalAmountObj staffAmountList)
         {
-            Workbook yoyoyo = new Workbook();
+            Workbook wb = new Workbook();
 
             // 得到第一個工作表。
-            Worksheet sheet1 = yoyoyo.Worksheets[0];
+            Worksheet sheet1 = wb.Worksheets[0];
+            sheet1.Cells.SetColumnWidth(1, 20.0);
+            sheet1.Cells.SetColumnWidth(2, 30.0);
+            sheet1.Cells.SetColumnWidth(3, 10.0);
+            sheet1.Cells.SetColumnWidth(4, 10.0);
+            sheet1.Cells.SetColumnWidth(5, 10.0);
+            sheet1.Cells.SetColumnWidth(6, 10.0);
+            sheet1.Cells.SetColumnWidth(7, 10.0);
+            // 獲取工作表的單元格集合
+            Cells cells = sheet1.Cells;
+
+            // 為單元格設置值
+            Aspose.Cells.Cell cell = cells["A2"];
+            cell.PutValue("院舍");
+            cell = cells["B2"];
+            cell.PutValue("Total");
+           
+        
+            cell = cells["E2"];
+            cell.PutValue("員工");
+            cell = cells["F2"];
+            cell.PutValue("Total");
+
+            cell = cells[@$"B1"];
+            cell.PutValue(companyAmountList.totalAmount);
+
+            cell = cells[@$"F1"];
+            cell.PutValue(staffTotalAmountList.totalAmount);
+
+            for (int i = 0; i < companyAmountList.eachTotal.Count; i++)
+            {
+                cell = cells[@$"A{i + 3}"];
+                cell.PutValue(companyAmountList.eachTotal[i].name);
+                cell = cells[@$"B{i + 3}"];
+                cell.PutValue(companyAmountList.eachTotal[i].total); 
+            }
+
+            for (int i = 0; i < staffAmountList.eachTotal.Count; i++)
+            {
+                cell = cells[@$"E{i + 3}"];
+                cell.PutValue(staffAmountList.eachTotal[i].name);
+                cell = cells[@$"F{i + 3}"];
+                cell.PutValue(staffAmountList.eachTotal[i].total);
+            }
+            // 保存 Excel 文件。
+            wb.Save(outputFolder + "Total Amount_output.xlsx", SaveFormat.Xlsx);
+
+            return "";
+        }
+        public static string bankAccount(List<allStaff> allstaffList)
+        {
+            Workbook wb = new Workbook();
+
+            // 得到第一個工作表。
+            Worksheet sheet1 = wb.Worksheets[0];
             sheet1.Cells.SetColumnWidth(1, 20.0);
             sheet1.Cells.SetColumnWidth(2, 30.0);
             sheet1.Cells.SetColumnWidth(3, 10.0);
@@ -934,15 +990,14 @@ namespace invoice
             }
 
             // 保存 Excel 文件。
-            yoyoyo.Save(outputFolder + "System Bank Record_Program_output.xlsx", SaveFormat.Xlsx);
+            wb.Save(outputFolder + "System Bank Record_Program_output.xlsx", SaveFormat.Xlsx);
 
             return "";
         }
         public static async Task<string> company_invoice(List<company> companyList)
         {
             var renderer = new HtmlToPdf();
-
-            ;
+             
             for (int q = 0; q < companyList.Count; q++)
             {
                 decimal allTotal = 0;
@@ -998,6 +1053,8 @@ namespace invoice
 
                     }
                 }
+
+                companyTotalAmountList.eachTotal.Add(new eachTotal { name = companyList[q].customerName + companyList[q].invoiceNoForCompanySalary, total = allTotal });
                 var html = $@"<!DOCTYPE html>
         <html>
           {style}
@@ -1258,6 +1315,10 @@ namespace invoice
 
 
                 allStaffList[i].totalSalary = totalSalary.ToString();
+
+                staffTotalAmountList.eachTotal.Add(new eachTotal { name = allStaffList[i].name, total = totalSalary });
+
+
                 if (option == "1")
                 {
                     string html = $@" <!DOCTYPE html>
