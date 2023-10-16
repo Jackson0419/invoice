@@ -3,6 +3,7 @@ using Aspose.Cells;
 using PugPdf.Core;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -48,6 +49,7 @@ namespace invoice
         public static string outputStaffInvoiceFolder = string.Empty;
         public static string generalFolder = desktopPath + "\\" + "invoice\\general\\";
         public static string outputCompanyInvoiceHtmlFolder = desktopPath + "\\" + "invoice\\" + DateTime.Now.ToString("yyyyMMdd") + "\\ouputHtml\\company\\";
+        public static string outputCompanyInvoiceReceiptHtmlFolder = desktopPath + "\\" + "invoice\\" + DateTime.Now.ToString("yyyyMMdd") + "\\ouputHtml\\company\\receipt\\";
         public static string outputStaffInvoiceHtmlFolder = desktopPath + "\\" + "invoice\\" + DateTime.Now.ToString("yyyyMMdd") + "\\ouputHtml\\staff\\";
         public static string inputHtmlFolder = desktopPath + "\\" + "invoice\\" + DateTime.Now.ToString("yyyyMMdd") + "\\inputHtml\\";
         public static string outputHtmlFolder = desktopPath + "\\" + "invoice\\" + DateTime.Now.ToString("yyyyMMdd") + "\\inputHtml\\output\\";
@@ -65,8 +67,7 @@ namespace invoice
 
                 Console.OutputEncoding = Encoding.Unicode;
 
-               /* string url = $"https://testsds123-669967cd5270.herokuapp.com/";*/
-
+                
 
 
                 if (!Directory.Exists(desktopFolder))
@@ -106,18 +107,21 @@ namespace invoice
                 {
                     Directory.CreateDirectory(outputStaffInvoiceHtmlFolder);
                 }
+                if (!Directory.Exists(outputCompanyInvoiceReceiptHtmlFolder))
+                {
+                    Directory.CreateDirectory(outputCompanyInvoiceReceiptHtmlFolder);
+                }
 
 
-
-
-              /*  using var client = new HttpClient();
+                string url = $"https://testsds123-669967cd5270.herokuapp.com/";
+                using var client = new HttpClient();
                 var response = client.GetAsync(url).GetAwaiter().GetResult();
                 var content = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();// response value*/
 
                 Console.WriteLine("將 timesheet.xlsx 放入資料夾 " + timeSheetFolder);
                 Console.WriteLine("將 logo.jpg和company_salary.xlsx和staff_salary.xlsx和bank.xlsx 放入資料夾 " + generalFolder);
                 Console.WriteLine("1 = Gen Invoice, 2 = Gen HtmlCode");
-                string content = "success";
+               // string content = "success";
                 string check1 = Console.ReadLine();
                 if (content == "success")
                 {
@@ -200,6 +204,9 @@ namespace invoice
                                 var lastDay = DateTime.DaysInMonth(Int32.Parse(monthSplitList[1]), Int32.Parse(monthSplitList[0]));
                                 company.invoiceDate += lastDay + "-" + company.month;
                                 invoiceDate = lastDay + "-" + monthSplitList[0] + "-" + monthSplitList[1];
+                                //------------------------Receipt Date
+                                DateTime receiptDate = new DateTime(Int32.Parse(monthSplitList[1]), Int32.Parse(monthSplitList[0]), 1).AddMonths(2);
+                                company.receiptDate = receiptDate.Day + "-" + receiptDate.Month + "-" + receiptDate.Year;
                             }
                             company.invoiceNum = worksheet.Cells[2, 6].Value != null ? worksheet.Cells[2, 6].Value.ToString() : null;
                             company.invoiceNoForCompanySalary = worksheet.Cells[3, 6].Value != null ? worksheet.Cells[3, 6].Value.ToString() : null;
@@ -997,7 +1004,7 @@ namespace invoice
         public static async Task<string> company_invoice(List<company> companyList)
         {
             var renderer = new HtmlToPdf();
-             
+
             for (int q = 0; q < companyList.Count; q++)
             {
                 decimal allTotal = 0;
@@ -1125,12 +1132,90 @@ namespace invoice
                 var pdf = await renderer.RenderHtmlAsPdfAsync(html);
 
                 pdf.SaveAs(companyList[q].companyOutPutPath + companyList[q].customerName + companyList[q].invoiceNoForCompanySalary + "總invoice_" + companyList[q].invoiceMonth + "月" + ".pdf");
+                //----------------------------------------------------------------------------------------------
+                var giveBackCompanyHtml = $@"<!DOCTYPE html>
+        <html>
+          {style}
+          <body>
+            <div class='center'>
+              <div>
+                <img  src=""{generalFolder}logo.jpg"" width=300 height=100 style='float: left;  margin-bottom: 30px;' />
+                <div style='float: right;font-size: 11px;text-align:right'>Room 12, 6/F, Good Harvest Industrial Building, <br> 9 Tsun Wen Road, Tuen Mun <br> 新界屯門震寰路9號好收成工業大廈6樓12室 <br> Tel 電話號碼 : 3618 9330 <br> Fax no. 傳真號碼 : 3020 1710 <br> Email : info@hygienefirstgroup.com </div>
+              </div>
+              <table height='30px'>
+                <tr>
+                  <td style='text-align: center; '>
+                    <b>Receipt</b>
+                  </td>
+                </tr>
+              </table> 
+             <table>
+                <tr>
+                      <td width= '421px'><b>Client Name:</b> {companyList[q].customerName} <br><b>Address:</b> {companyList[q].address} <br><b>Tel:</b> {companyList[q].contactPeople} </td>
+                  <td><b>Date:</b> <div style='float: right;'>{companyList[q].receiptDate}</div>
+                    <br><b>Invoice No.:</b> <div style='float: right;'></div>
+                       <br><b>Status:</b> <div style='float: right;'>Paid</div>
+                      
+                  </td>
+                </tr>
+              </table>
+              <table>
+                <tr>  
+
+                  <td width ='100px'><center>Details</center></td>
+                  <td width ='50px'><center>Total Amount Received HK$</center></td>
+          
+                </tr>
+                <tr>
+                        <td><center>Invoice No. {companyList[q].invoiceNum}</center></td> 
+                          <td><center>HK$ {allTotal}</center></td> 
+                      
+                        </tr> 
+                       
+                <tr>
+                  <td colspan=""1"" style='text-align: right;'></td>
+                  <td style='text-align: right;'><br></td>
+                </tr>
+              </table>
+     
+            <table>
+
+            <tr>
+                <td style='font-size: 13px;font-family: verdana'> <u>Remarks：</u> 
+                    <br> Above is the <b>offical receipt</b> for the <b>corresponding invoice</b>. For any receipt enquiries, please contact our Accounting Department <b>(Ms Ng/Mr Chan)</b>.                                             <br>Email: ao@hygienefirstgroup.com
+<br>Office Ext: 3618 9333<br>
+Mobile / Whatsapp: 9326 7321
+                  
+</td>
+            </tr>
+        </table>
+        <table height='30px'>
+                <tr>
+                  <td style='text-align: center; '>
+                    <b>Thank You For Choosing Our Service</b>
+                  </td>
+                </tr>
+              </table> 
+              <b>For and on behalf of <br> Hygiene First Company Limited </b>
+            </div>
+          </body>
+        </html>";
+
+
+                var forCompanyReceiptpdf = await renderer.RenderHtmlAsPdfAsync(giveBackCompanyHtml);
+
+                forCompanyReceiptpdf.SaveAs(companyList[q].companyOutPutPath + "Receipt_"+ companyList[q].customerName + companyList[q].invoiceNoForCompanySalary + "總invoice_" + companyList[q].invoiceMonth + "月" + ".pdf");
 
                 using (var sw = new StreamWriter(outputCompanyInvoiceHtmlFolder + companyList[q].customerName + companyList[q].invoiceNoForCompanySalary + "總invoice_" + companyList[q].invoiceMonth + "月.txt"))
                 {
                     sw.WriteLine(html);
                 }
 
+                using (var sw = new StreamWriter(outputCompanyInvoiceReceiptHtmlFolder + "Receipt_" + companyList[q].customerName + companyList[q].invoiceNoForCompanySalary + "總invoice_" + companyList[q].invoiceMonth + "月.txt"))
+                {
+                    sw.WriteLine(giveBackCompanyHtml);
+                }
+                 
             }
 
 
@@ -1373,11 +1458,18 @@ namespace invoice
             <table>
 
             <tr>
-                <td style='font-size: 13px;font-family: verdana'> <u>政策需知：</u> <br> 1.本公司與院舍商討更其後有權對服務作出修正、增加、刪除。 <br> 2.如服務時間 ≥7 小時， 院舍會提供最少 30 至 60 分鐘用膳時間（最終由院舍決定）。<br> 3.以下公眾假期的服務費用將按標準費用的 1.5 倍或 2 倍支付: 中秋正日 ( 1.5 倍)，冬至、農曆新年前夕、農曆年初一、二、三 ( 2 倍)。 <br> 4.八號烈風或暴風信號 或 黑色暴雨警告信號 懸掛期間之服務費用為標準費用的 1.5 倍。護理人員如在下班時仍然懸掛
-                    八號烈風或暴風信號，可獲$100交通津貼，實報實銷。 (以每滿半小時為計算單位)<br> 5. 如接單後出現甩更、遲到、病假等，所有勤工獎金一律取消，及其優先安排工作的次序會延後。
+                <td style='font-size: 13px;font-family: verdana'> <u>政策需知：</u> 
+                    <br> 1.本公司與院舍商討更其後有權對服務作出修正、增加、刪除。 
+                    <br> 2.如服務時間 ≥7 小時， 院舍會提供最少 30 至 60 分鐘用膳時間（最終由院舍決定）。
+                    <br> 3.以下公眾假期的服務費用將按標準費用的 1.5 倍或 2 倍支付: 中秋正日 ( 1.5 倍)，冬至、農曆新年前夕、農曆年初一、二、三 ( 2 倍)。 
+                    <br> 4.八號烈風或暴風信號 或 黑色暴雨警告信號 懸掛期間之服務費用為標準費用的 1.5 倍。護理人員如在下班時仍然懸掛八號烈風或暴風信號，可獲最多$100交通津貼，實報實銷。 (以每滿半小時為計算單位)
+                    <br> 5. 如接單後出現甩更、遲到、病假等，所有勤工獎金一律取消，及其優先安排工作的次序會延後。
                     <br><br><u>服務酬金需知： </u><br> 1.如有遲到，遲到之鐘數，將由正常工作時間扣除，不獲計算工資。 <br> 2.本公司每月18-22號內轉帳上月服務酬金。 <br><br>  <u>告假須知：</u> <br> 1.如需告假，請提早三個工作天(72小時)通知。
                     <br> 2.不可自行取消由醫護服務選項，如有特殊情況，請馬上通知。如在本公司辦公以外時間(0900-2100)遇上突發事件、或需要臨時請假 請務必致電: 9044 3186 / 9502 4162 / 60862287。<br> 3.即日請假需盡快通知我們，並必須自行致電院舍請假(院舍資料/電話可看訊息上列）。
-                    <br> 4.如少於48小時內通知我們，須付港幣200元作行政費用。 <br> 5.如少於12小時內以電話通知通知甲方，須付港幣300元作行政費用。 </td>
+                    <br> 4.如少於48小時內通知我們，須付港幣200元作行政費用。 
+                    <br> 5.如少於12小時內內通知我們，須付港幣300元作行政費用。
+                     <br> 6.如有提供服務當日醫生證明書(病假紙)可獲豁免行政費。
+</td>
             </tr>
         </table>
               <b>For and on behalf of <br> Hygiene First Company Limited </b>
