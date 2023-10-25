@@ -58,7 +58,7 @@ namespace invoice
         public static string invoiceDate = string.Empty;
         public static totalAmountObj companyTotalAmountList = new totalAmountObj();
         public static totalAmountObj staffTotalAmountList = new totalAmountObj();
-
+        public static string check1 = string.Empty;
         static async Task Main(string[] args)
         {
 
@@ -67,7 +67,7 @@ namespace invoice
 
                 Console.OutputEncoding = Encoding.Unicode;
 
-                
+
 
 
                 if (!Directory.Exists(desktopFolder))
@@ -120,13 +120,13 @@ namespace invoice
 
                 Console.WriteLine("將 timesheet.xlsx 放入資料夾 " + timeSheetFolder);
                 Console.WriteLine("將 logo.jpg和company_salary.xlsx和staff_salary.xlsx和bank.xlsx 放入資料夾 " + generalFolder);
-                Console.WriteLine("1 = Gen Invoice, 2 = Gen HtmlCode");
-               // string content = "success";
-                string check1 = Console.ReadLine();
+                Console.WriteLine("1 = Gen Company Invoice, 2 = Gen Staff Invoice, 3 = Gen HtmlCode");
+                // string content = "success";
+                check1 = Console.ReadLine();
                 if (content == "success")
                 {
 
-                    if (check1 == "2")
+                    if (check1 == "3")
                     {
                         var renderer = new HtmlToPdf();
                         DirectoryInfo d = new DirectoryInfo(inputHtmlFolder);
@@ -139,11 +139,11 @@ namespace invoice
                             pdf.SaveAs(outputHtmlFolder + Path.GetFileNameWithoutExtension(matchFolder[i].FullName) + ".pdf");
                             Console.WriteLine(matchFolder[i].FullName + " Done");
                         }
-                         
+
                     }
-                    if (check1 == "1")
+                    if (check1 == "1" || check1 == "2")
                     {
-                         
+
 
 
                         List<string> JobIdList = new List<string>();
@@ -157,14 +157,14 @@ namespace invoice
                         for (int v = 0; v < wb.Worksheets.Count(); v++)
                         {
                             Console.WriteLine();
-                            Console.WriteLine(v +"/"+wb.Worksheets.Count());
+                            Console.WriteLine(v + "/" + wb.Worksheets.Count());
                             List<specialEvent> specialEventsList = new List<specialEvent>();
                             List<staffList> staffNameList = new List<staffList>();
                             company company = new company();
 
                             Worksheet worksheet = wb.Worksheets[v];
                             var ggg = worksheet.IsVisible;
-                        
+
                             if (worksheet.IsVisible == false)
                             {
                                 Console.WriteLine("Hidden Table");
@@ -172,7 +172,7 @@ namespace invoice
                             }
 
                             Console.WriteLine("Worksheet: " + worksheet.Name);
- 
+
                             int rows = worksheet.Cells.MaxDataRow;
                             int cols = worksheet.Cells.MaxDataColumn;
 
@@ -206,7 +206,8 @@ namespace invoice
                                 invoiceDate = lastDay + "-" + monthSplitList[0] + "-" + monthSplitList[1];
                                 //------------------------Receipt Date
                                 DateTime receiptDate = new DateTime(Int32.Parse(monthSplitList[1]), Int32.Parse(monthSplitList[0]), 1).AddMonths(2);
-                                company.receiptDate = receiptDate.Day + "-" + receiptDate.Month + "-" + receiptDate.Year;
+                                var receiptDatelastDay = DateTime.DaysInMonth(receiptDate.Year, receiptDate.Month);
+                                company.receiptDate = receiptDatelastDay + "-" + receiptDate.Month + "-" + receiptDate.Year;
                             }
                             company.invoiceNum = worksheet.Cells[2, 6].Value != null ? worksheet.Cells[2, 6].Value.ToString() : null;
                             company.invoiceNoForCompanySalary = worksheet.Cells[3, 6].Value != null ? worksheet.Cells[3, 6].Value.ToString() : null;
@@ -638,32 +639,35 @@ namespace invoice
 
                             for (int i = 0; i < staffNameList.Count; i++)
                             {
-                               /* if (i == 2)
-                                {
-                                    var ggw = "";
-                                }*/
+                                /* if (i == 2)
+                                 {
+                                     var ggw = "";
+                                 }*/
 
                                 for (int e = 0; e < staffNameList[i].duty.Count; e++)
                                 {
-                                    
+
                                     double salary = 0;
                                     double companySalary = 0;
-                                    try { 
-                                         salary = Convert.ToDouble(staffNameList[i].duty[e].salary);
+                                    try
+                                    {
+                                        salary = Convert.ToDouble(staffNameList[i].duty[e].salary);
 
                                         if (salary == null || salary == 0)
                                         {
                                             throw new Exception(staffNameList[i].duty[e].title + "，" + staffNameList[i].duty[e].dutyTime + "　Staff Salary Not Found");
                                         }
-                                    } catch (Exception) {
+                                    }
+                                    catch (Exception)
+                                    {
 
-                                        throw new Exception(staffNameList[i].duty[e].title　+"，"+staffNameList[i].duty[e].dutyTime + "　Staff Salary Not Found");
+                                        throw new Exception(staffNameList[i].duty[e].title + "，" + staffNameList[i].duty[e].dutyTime + "　Staff Salary Not Found");
                                     }
 
-                                    
+
                                     try
                                     {
-                                        
+
 
                                         companySalary = Convert.ToDouble(staffNameList[i].duty[e].companySalary);
 
@@ -678,7 +682,7 @@ namespace invoice
 
                                         throw new Exception(staffNameList[i].duty[e].title + "，" + staffNameList[i].duty[e].dutyTime + "　Company Salary Not Found");
                                     }
-                             
+
                                     for (int p = 0; p < specialEventsList.Count; p++)
                                     {
                                         if (specialEventsList[p].name == staffNameList[i].name && specialEventsList[p].date == staffNameList[i].duty[e].date && specialEventsList[p].shift == staffNameList[i].duty[e].dutyTime)
@@ -810,7 +814,7 @@ namespace invoice
 
 
                         await company_invoice(companyList);
-                        Console.WriteLine("company invoice processing");
+                        // Console.WriteLine("company invoice processing");
                         for (int o = 0; o < allStaffList.Count; o++)
                         {
                             for (int p = 0; p < allStaffList[o].companyDuty.Count; p++)
@@ -834,23 +838,22 @@ namespace invoice
 
                             }
                         }
-                        Console.WriteLine("company invoice processing Done");
-                        Console.WriteLine("要staff invoice 輸入 1, 不要staff invoice 輸入 2");
-                        string check2 = Console.ReadLine();
-                        if (check2 == "1" || check2 == "2")
-                        {
-                            await allStaffInvoice(allStaffList, check2);
-                            bankAccount(allStaffList);
-                            companyHistory(companyList);
+                        // Console.WriteLine("company invoice processing Done");
+                        /*                 Console.WriteLine("要staff invoice 輸入 1, 不要staff invoice 輸入 2");
+                                         string check2 = Console.ReadLine();*/
 
-                            companyTotalAmountList.totalAmount = companyTotalAmountList.eachTotal.Sum(e => e.total);
-                            staffTotalAmountList.totalAmount = staffTotalAmountList.eachTotal.Sum(e => e.total);
-                            totalAmount(companyTotalAmountList, staffTotalAmountList);
-                        }
-                        else
-                        {
-
-                        }
+                        await allStaffInvoice(allStaffList);
+                        Console.WriteLine("BankAccount Execl Processing");
+                        bankAccount(allStaffList);
+                        Console.WriteLine("BankAccount Execl Done");
+                        Console.WriteLine("Company History Execl Processing");
+                        companyHistory(companyList);
+                        Console.WriteLine("Company History Execl Done");
+                        Console.WriteLine("TotalAmount Execl Processing");
+                        companyTotalAmountList.totalAmount = companyTotalAmountList.eachTotal.Sum(e => e.total);
+                        staffTotalAmountList.totalAmount = staffTotalAmountList.eachTotal.Sum(e => e.total);
+                        totalAmount(companyTotalAmountList, staffTotalAmountList);
+                        Console.WriteLine("TotalAmount Execl Done");
 
                     }
                 }
@@ -892,8 +895,8 @@ namespace invoice
             cell.PutValue("院舍");
             cell = cells["B2"];
             cell.PutValue("Total");
-           
-        
+
+
             cell = cells["E2"];
             cell.PutValue("員工");
             cell = cells["F2"];
@@ -910,7 +913,7 @@ namespace invoice
                 cell = cells[@$"A{i + 3}"];
                 cell.PutValue(companyAmountList.eachTotal[i].name);
                 cell = cells[@$"B{i + 3}"];
-                cell.PutValue(companyAmountList.eachTotal[i].total); 
+                cell.PutValue(companyAmountList.eachTotal[i].total);
             }
 
             for (int i = 0; i < staffAmountList.eachTotal.Count; i++)
@@ -1004,9 +1007,16 @@ namespace invoice
         public static async Task<string> company_invoice(List<company> companyList)
         {
             var renderer = new HtmlToPdf();
-
+            if (check1 == "1")
+            {
+                Console.WriteLine("company invoice processing");
+            }
             for (int q = 0; q < companyList.Count; q++)
             {
+                if (check1 == "1")
+                {
+                    Console.WriteLine("company invoice " + q + "/" + companyList.Count);
+                }
                 decimal allTotal = 0;
                 renderer.PrintOptions.Title = companyList[q].companyOutPutPath + companyList[q].customerName + "總invoice_" + companyList[q].invoiceMonth + "月";
                 string body = string.Empty;
@@ -1129,9 +1139,7 @@ namespace invoice
             </div>
           </body>
         </html>";
-                var pdf = await renderer.RenderHtmlAsPdfAsync(html);
 
-                pdf.SaveAs(companyList[q].companyOutPutPath + companyList[q].customerName + companyList[q].invoiceNoForCompanySalary + "總invoice_" + companyList[q].invoiceMonth + "月" + ".pdf");
                 //----------------------------------------------------------------------------------------------
                 var giveBackCompanyHtml = $@"<!DOCTYPE html>
         <html>
@@ -1151,9 +1159,9 @@ namespace invoice
               </table> 
              <table>
                 <tr>
-                      <td width= '421px'><b>Client Name:</b> {companyList[q].customerName} <br><b>Address:</b> {companyList[q].address} <br><b>Tel:</b> {companyList[q].contactPeople} </td>
+                      <td width= '421px'><b>Client Name: {companyList[q].customerName} </b><br><b>Address: {companyList[q].address} </b><br><b>Tel: {companyList[q].contactPeople} </b></td>
                   <td><b>Date:</b> <div style='float: right;'>{companyList[q].receiptDate}</div>
-                    <br><b>Invoice No.:</b> <div style='float: right;'></div>
+                 
                        <br><b>Status:</b> <div style='float: right;'>Paid</div>
                       
                   </td>
@@ -1162,7 +1170,7 @@ namespace invoice
               <table>
                 <tr>  
 
-                  <td width ='100px'><center>Details</center></td>
+                  <td width ='85px'><center>Details</center></td>
                   <td width ='50px'><center>Total Amount Received HK$</center></td>
           
                 </tr>
@@ -1181,10 +1189,10 @@ namespace invoice
             <table>
 
             <tr>
-                <td style='font-size: 13px;font-family: verdana'> <u>Remarks：</u> 
-                    <br> Above is the <b>offical receipt</b> for the <b>corresponding invoice</b>. For any receipt enquiries, please contact our Accounting Department <b>(Ms Ng/Mr Chan)</b>.                                             <br>Email: ao@hygienefirstgroup.com
-<br>Office Ext: 3618 9333<br>
-Mobile / Whatsapp: 9326 7321
+                <td style='font-size: 13px;'> <u>Remarks：</u> 
+                    <br> Above is the <b>offical receipt</b> for the <b>corresponding invoice</b>. For any receipt enquiries, please contact our Accounting Department (<b>Ms Ng</b>/<b>Mr Chan</b>).                                             <br>Email: ao@hygienefirstgroup.com
+                        <br>Office Ext: 3618 9333<br>
+                        Mobile / Whatsapp: 9326 7321
                   
 </td>
             </tr>
@@ -1201,36 +1209,46 @@ Mobile / Whatsapp: 9326 7321
           </body>
         </html>";
 
-
-                var forCompanyReceiptpdf = await renderer.RenderHtmlAsPdfAsync(giveBackCompanyHtml);
-
-                forCompanyReceiptpdf.SaveAs(companyList[q].companyOutPutPath + "Receipt_"+ companyList[q].customerName + companyList[q].invoiceNoForCompanySalary + "總invoice_" + companyList[q].invoiceMonth + "月" + ".pdf");
-
-                using (var sw = new StreamWriter(outputCompanyInvoiceHtmlFolder + companyList[q].customerName + companyList[q].invoiceNoForCompanySalary + "總invoice_" + companyList[q].invoiceMonth + "月.txt"))
+                if (check1 == "1")
                 {
-                    sw.WriteLine(html);
+                    var pdf = await renderer.RenderHtmlAsPdfAsync(html);
+
+                    pdf.SaveAs(companyList[q].companyOutPutPath + companyList[q].customerName + companyList[q].invoiceNoForCompanySalary + "總invoice_" + companyList[q].invoiceMonth + "月" + ".pdf");
+
+                    var forCompanyReceiptpdf = await renderer.RenderHtmlAsPdfAsync(giveBackCompanyHtml);
+
+                    forCompanyReceiptpdf.SaveAs(companyList[q].companyOutPutPath + "Receipt_" + companyList[q].customerName + companyList[q].invoiceNoForCompanySalary + "總invoice_" + companyList[q].invoiceMonth + "月" + ".pdf");
+
+                    using (var sw = new StreamWriter(outputCompanyInvoiceHtmlFolder + companyList[q].customerName + companyList[q].invoiceNoForCompanySalary + "總invoice_" + companyList[q].invoiceMonth + "月.txt"))
+                    {
+                        sw.WriteLine(html);
+                    }
+
+                    using (var sw = new StreamWriter(outputCompanyInvoiceReceiptHtmlFolder + "Receipt_" + companyList[q].customerName + companyList[q].invoiceNoForCompanySalary + "總invoice_" + companyList[q].invoiceMonth + "月.txt"))
+                    {
+                        sw.WriteLine(giveBackCompanyHtml);
+                    }
                 }
 
-                using (var sw = new StreamWriter(outputCompanyInvoiceReceiptHtmlFolder + "Receipt_" + companyList[q].customerName + companyList[q].invoiceNoForCompanySalary + "總invoice_" + companyList[q].invoiceMonth + "月.txt"))
-                {
-                    sw.WriteLine(giveBackCompanyHtml);
-                }
-                 
             }
 
 
             return "";
         }
 
-        public static async Task<string> allStaffInvoice(List<allStaff> allStaffList, string option)
+        public static async Task<string> allStaffInvoice(List<allStaff> allStaffList)
         {
 
             for (int i = 0; i < allStaffList.Count; i++)
             {
                 decimal totalSalary = 0;
                 string body = string.Empty;
-                Console.WriteLine(i + 1 + "/" + allStaffList.Count);
-                Console.WriteLine(allStaffList[i].name + " Processing");
+
+                if (check1 == "2")
+                {
+                    Console.WriteLine(i + 1 + "/" + allStaffList.Count);
+                    Console.WriteLine(allStaffList[i].name + " Processing");
+                }
                 var renderer = new HtmlToPdf();
 
                 for (int q = 0; q < allStaffList[i].companyDuty.Count; q++)
@@ -1404,7 +1422,7 @@ Mobile / Whatsapp: 9326 7321
                 staffTotalAmountList.eachTotal.Add(new eachTotal { name = allStaffList[i].name, total = totalSalary });
 
 
-                if (option == "1")
+                if (check1 == "2")
                 {
                     string html = $@" <!DOCTYPE html>
         <html>
