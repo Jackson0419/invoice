@@ -1,5 +1,6 @@
 ﻿
 using Aspose.Cells;
+using Aspose.Cells.Charts;
 using PugPdf.Core;
 using System;
 using System.Collections.Generic;
@@ -282,13 +283,30 @@ namespace invoice
                                     {
                                         for (int i = 7; i <= rows; i++)
                                         {
-
-                                            var date = worksheet.Cells[i, j].Value != null ? DateTime.Parse(worksheet.Cells[i, j].Value.ToString()).ToString("dd-MM-yyyy") : null;
+                                            
+                                            System.Diagnostics.Debug.WriteLine(i);
+                                            var date = worksheet.Cells[i, j].Value != null ? worksheet.Cells[i, j].Value.ToString().Trim() : null;
+                                            if (string.IsNullOrEmpty(date))
+                                            {
+                                                date = null;
+                                            }
+                                            date = date!=null ? DateTime.Parse(worksheet.Cells[i, j].Value.ToString().Trim()).ToString("dd-MM-yyyy") : null;
                                             var name = worksheet.Cells[i, j + 1].Value != null ? worksheet.Cells[i, j + 1].Value.ToString() : null;
                                             var shift = worksheet.Cells[i, j + 2].Value != null ? worksheet.Cells[i, j + 2].Value.ToString() : null;
                                             var salary = worksheet.Cells[i, j + 3].Value != null ? worksheet.Cells[i, j + 3].Value.ToString() : null;
                                             var reason = worksheet.Cells[i, j + 4].Value != null ? worksheet.Cells[i, j + 4].Value.ToString() : null;
 
+                                          
+                                            string[] reasonList = new string[2];
+                                            if (reason != null)
+                                            {
+                                                reasonList = reason.Split(',');
+                                                if(reasonList.Length < 2)
+                                                {
+                                                    throw new Exception("Reason Format 錯, 正常Format : Salary入小時 | Reason 入 OT,原因 / T8,原因\n Salary入金額 Reason 入 bonus,原因");
+                                                    
+                                                }
+                                            }
                                             if (name != null)
                                             {
                                                 specialEventsList.Add(new specialEvent
@@ -296,8 +314,9 @@ namespace invoice
                                                     date = date,
                                                     name = name,
                                                     shift = shift,
-                                                    salary = salary,
-                                                    reason = reason
+                                                    hours = salary,
+                                                    eventT8orOT = reasonList[0],
+                                                    reason = reasonList[1]
                                                 });
                                             }
 
@@ -607,7 +626,7 @@ namespace invoice
                                     {
                                         if (BankSheet.Cells[e, i].Value != null)
                                         {
-                                            System.Diagnostics.Debug.WriteLine(BankSheet.Cells[e, i].Value.ToString());
+                                         /*   System.Diagnostics.Debug.WriteLine(BankSheet.Cells[e, i].Value.ToString());*/
                                             for (int q = 0; q < staffNameList.Count; q++)
                                             {
 
@@ -683,80 +702,155 @@ namespace invoice
                                         throw new Exception(staffNameList[i].duty[e].title + "，" + staffNameList[i].duty[e].dutyTime + "　Company Salary Not Found");
                                     }
 
+                                    decimal t8Staffsalary = 0;
+                                    decimal t8CompanySalary = 0;
                                     for (int p = 0; p < specialEventsList.Count; p++)
                                     {
                                         if (specialEventsList[p].name == staffNameList[i].name && specialEventsList[p].date == staffNameList[i].duty[e].date && specialEventsList[p].shift == staffNameList[i].duty[e].dutyTime)
                                         {
-
-                                            staffNameList[i].duty[e].reason = specialEventsList[p].reason;
-
-                                            if (specialEventsList[p].salary == "T8")
+                                             
+                              
+                                            if (specialEventsList[p].eventT8orOT == "T8")
                                             {
-                                                salary *= 1.5;
-                                                companySalary *= 2;
-                                                staffNameList[i].duty[e].salary = salary.ToString();
-                                                staffNameList[i].duty[e].companySalary = companySalary.ToString();
+                                                staffNameList[i].duty[e].T8reason = specialEventsList[p].reason;
+                                                /*  salary *= 1.5;
+                                                  companySalary *= 2;*/
+                                                staffNameList[i].duty[e].T8 = true;
+
+                                                staffNameList[i].duty[e].T8StaffRemovesalary = Math.Floor(Convert.ToDouble((salary / (Convert.ToDouble(staffNameList[i].duty[e].dutyHours) * 60)) * Convert.ToDouble(specialEventsList[p].hours)));
+                                                staffNameList[i].duty[e].T8StaffAddsalary = Math.Floor(Convert.ToDouble((salary / (Convert.ToDouble(staffNameList[i].duty[e].dutyHours) *60)) * Convert.ToDouble(specialEventsList[p].hours) * 1.5));
+                                                staffNameList[i].duty[e].T8CompanyRemoveSalary = Math.Floor(Convert.ToDouble((companySalary / (Convert.ToDouble(staffNameList[i].duty[e].dutyHours) * 60)) * Convert.ToDouble(specialEventsList[p].hours)));
+                                                staffNameList[i].duty[e].T8CompanyAddSalary = Math.Floor(Convert.ToDouble((companySalary / (Convert.ToDouble(staffNameList[i].duty[e].dutyHours) * 60)) * Convert.ToDouble(specialEventsList[p].hours) * 2));
+
+
+                                                staffNameList[i].duty[e].T8CompanySalaryFormula = @$"(正常收費${companySalary} + ${staffNameList[i].duty[e].T8CompanyRemoveSalary}({specialEventsList[p].hours}分鐘))";
+                                                staffNameList[i].duty[e].T8StaffSalaryFormula = @$"(正常收費${salary} + ${staffNameList[i].duty[e].T8StaffRemovesalary}({specialEventsList[p].hours}分鐘))";
+
+                                                t8Staffsalary += Convert.ToDecimal(salary) + Convert.ToDecimal(staffNameList[i].duty[e].T8StaffRemovesalary);
+                                                t8CompanySalary += Convert.ToDecimal(companySalary) + Convert.ToDecimal(staffNameList[i].duty[e].T8CompanyRemoveSalary);
+
+
+                                                staffNameList[i].duty[e].t8CompanySalary = Convert.ToDecimal(t8CompanySalary);
+                                                staffNameList[i].duty[e].t8StaffSalary = Convert.ToDecimal(t8Staffsalary);
+
+                                                staffNameList[i].totalSalaryForCompany += t8CompanySalary;
+                                                staffNameList[i].totalStaffSalary += t8Staffsalary;
+                                  /*              staffNameList[i].totalSalaryForCompany +=  Convert.ToDecimal(staffNameList[i].duty[e].T8CompanyAddSalary);
+                                                staffNameList[i].totalStaffSalary -= Convert.ToDecimal(staffNameList[i].duty[e].T8StaffRemovesalary);
+                                                staffNameList[i].totalSalaryForCompany -= Convert.ToDecimal(staffNameList[i].duty[e].T8CompanyRemoveSalary);
+                                                staffNameList[i].totalStaffSalary += Convert.ToDecimal(staffNameList[i].duty[e].T8StaffAddsalary);*/
+
+                                            }
+                                            else if (specialEventsList[p].eventT8orOT == "OT")
+                                            {
+                                                staffNameList[i].duty[e].OTreason = specialEventsList[p].reason;
+                                                staffNameList[i].duty[e].OT = true;
+                                    
+                                                decimal minutes = Convert.ToDecimal(staffNameList[i].duty[e].dutyHours) * 60;
+
+
+                                                decimal revisedSalary = 0;
+                                                decimal revisedCompanySalary = 0;
+
+                                                if (staffNameList[i].duty[e].T8 == true)
+                                                {
+                                                    revisedSalary = Convert.ToInt32((Convert.ToDouble(minutes) + Convert.ToDouble(specialEventsList[p].hours)) / Convert.ToDouble(minutes) * Convert.ToInt32(t8Staffsalary));
+                                                    revisedCompanySalary = Math.Floor((minutes + Convert.ToInt32(specialEventsList[p].hours)) / minutes * Convert.ToInt32(t8CompanySalary));
+                                                    staffNameList[i].duty[e].OTCompanySalaryFormula = @$"({minutes}分鐘 + {specialEventsList[p].hours}分鐘) / {minutes}分鐘 * T8收費{t8CompanySalary}";
+                                                    staffNameList[i].duty[e].OTStaffSalaryFormula = @$"({minutes}分鐘 + {specialEventsList[p].hours}分鐘) / {minutes}分鐘 * T8收費{t8Staffsalary}";
+                                                    staffNameList[i].duty[e].t8CompanySalary = 0;
+                                                    staffNameList[i].duty[e].t8StaffSalary = 0;
+
+                                                }
+                                                else
+                                                {
+                                                    revisedSalary = Convert.ToInt32((Convert.ToDouble(minutes) + Convert.ToDouble(specialEventsList[p].hours)) / Convert.ToDouble(minutes) * salary);
+                                                    revisedCompanySalary = Math.Floor((minutes + Convert.ToInt32(specialEventsList[p].hours)) / minutes * Convert.ToInt32(companySalary));
+                                                    staffNameList[i].duty[e].OTCompanySalaryFormula = @$"({minutes}分鐘 + {specialEventsList[p].hours}分鐘) / {minutes}分鐘 * 正常收費{companySalary}";
+                                                    staffNameList[i].duty[e].OTStaffSalaryFormula = @$"({minutes}分鐘 + {specialEventsList[p].hours}分鐘) / {minutes}分鐘 * 正常收費{salary}";
+
+                                                }
+                                                   
+
+                                      
+                                                 
+                                                staffNameList[i].duty[e].salary = Convert.ToDecimal(salary).ToString();
+                                                staffNameList[i].duty[e].companySalary = Convert.ToDecimal(companySalary.ToString()).ToString();
+
+                                                staffNameList[i].duty[e].OTcompanySalary = Convert.ToDecimal(revisedCompanySalary);
+                                                staffNameList[i].duty[e].OTStaffsalary = Convert.ToDecimal(revisedSalary);
+
+
+                                                staffNameList[i].totalSalaryForCompany += Convert.ToDecimal(revisedCompanySalary);
+                                                staffNameList[i].totalStaffSalary +=  Convert.ToDecimal(revisedSalary);
+
                                             }
                                             else
                                             {
+                                                staffNameList[i].duty[e].BonusReason = specialEventsList[p].reason;
+                                                staffNameList[i].duty[e].bonus = true;
+                                                staffNameList[i].duty[e].bonusSalary = decimal.Parse(specialEventsList[p].hours);
 
-                                                decimal minutes = Convert.ToDecimal(staffNameList[i].duty[e].dutyHours) * 60;
-                                                double revisedSalary = (Convert.ToDouble(minutes) + Convert.ToDouble(specialEventsList[p].salary)) / Convert.ToDouble(minutes) * salary;
-                                                decimal revisedCompanySalary = (minutes + Convert.ToInt32(specialEventsList[p].salary)) / minutes * Convert.ToInt32(companySalary);
-                                                salary = Convert.ToInt32(revisedSalary);
-                                                companySalary = decimal.ToInt32(revisedCompanySalary);
-                                                staffNameList[i].duty[e].salary = Convert.ToInt32(revisedSalary).ToString();
-                                                staffNameList[i].duty[e].companySalary = decimal.ToInt32(revisedCompanySalary).ToString();
 
                                             }
                                         }
                                     }
-                                    staffNameList[i].totalSalaryForCompany += Convert.ToDecimal(companySalary);
-                                    staffNameList[i].totalSalary += Convert.ToDecimal(salary);
+
+                                    if(staffNameList[i].duty[e].OT == false && staffNameList[i].duty[e].T8 == false && staffNameList[i].duty[e].bonus == false)
+                                    {
+                                        staffNameList[i].totalSalaryForCompany += Convert.ToDecimal(companySalary);
+                                        staffNameList[i].totalStaffSalary += Convert.ToDecimal(salary);
+                                    }
+                                    else
+                                    {
+                                     
+
+                                    }
+                                
 
                                 }
 
-                                staffNameList[i].totalSalaryOld = staffNameList[i].totalSalary;
+                                staffNameList[i].totalSalaryOld = staffNameList[i].totalStaffSalary;
 
                                 if (staffNameList[i].firstRegisterFees != null)
                                 {
 
-                                    staffNameList[i].totalSalary += Convert.ToDecimal(staffNameList[i].firstRegisterFees);
+                                    staffNameList[i].totalStaffSalary += Convert.ToDecimal(staffNameList[i].firstRegisterFees);
 
                                 }
                                 if (staffNameList[i].uniformFees != null)
                                 {
 
 
-                                    staffNameList[i].totalSalary += Convert.ToDecimal(staffNameList[i].uniformFees);
+                                    staffNameList[i].totalStaffSalary += Convert.ToDecimal(staffNameList[i].uniformFees);
 
                                 }
                                 if (staffNameList[i].cancelFees != null)
                                 {
 
 
-                                    staffNameList[i].totalSalary += Convert.ToDecimal(staffNameList[i].cancelFees);
+                                    staffNameList[i].totalStaffSalary += Convert.ToDecimal(staffNameList[i].cancelFees);
 
                                 }
                                 if (staffNameList[i].urgentFees != null)
                                 {
 
 
-                                    staffNameList[i].totalSalary += Convert.ToDecimal(staffNameList[i].urgentFees);
+                                    staffNameList[i].totalStaffSalary += Convert.ToDecimal(staffNameList[i].urgentFees);
 
                                 }
                                 if (staffNameList[i].bonus != null)
                                 {
 
 
-                                    staffNameList[i].totalSalary += Convert.ToDecimal(staffNameList[i].bonus);
+                                    staffNameList[i].totalStaffSalary += Convert.ToDecimal(staffNameList[i].bonus);
 
                                 }
                                 if (staffNameList[i].transportFees != null)
                                 {
 
 
-                                    staffNameList[i].totalSalary += Convert.ToDecimal(staffNameList[i].transportFees);
+                                    staffNameList[i].totalStaffSalary += Convert.ToDecimal(staffNameList[i].transportFees);
 
                                 }
                             }
@@ -1037,36 +1131,91 @@ namespace invoice
                         string title = string.Empty;
                         string companyUnitprice = companyList[q].staffLists[i].titleDuty[e].companyUnitPrice;
                         title = companyList[q].staffLists[i].titleDuty[e].title;
-                        string dutyCount = "0";
+
+                        List<duty> T8List = new List<duty>();
+                        List<duty> OTList = new List<duty>();
+                        List<duty> BonusList = new List<duty>();
+                        T8List = companyList[q].staffLists[i].titleDuty[e].dutyList.Where(x => x.T8 == true).ToList();
+                        OTList = companyList[q].staffLists[i].titleDuty[e].dutyList.Where(x => x.OT == true).ToList();
+                        BonusList = companyList[q].staffLists[i].titleDuty[e].dutyList.Where(x => x.bonus == true).ToList();
+                        int dutyNormalCount = 0;
+
                         for (int o = 0; o < companyList[q].staffLists[i].titleDuty[e].dutyList.Count; o++)
                         {
+                            if (companyList[q].staffLists[i].titleDuty[e].dutyList[o].T8 == false && companyList[q].staffLists[i].titleDuty[e].dutyList[o].OT == false) {
+                                dutyNormalCount++;
+                                
+                                description += DateTime.ParseExact(companyList[q].staffLists[i].titleDuty[e].dutyList[o].date.ToString(), "dd-MM-yyyy", CultureInfo.InvariantCulture).ToString("dd/M") + "(" + companyList[q].staffLists[i].titleDuty[e].dutyList[o].shift + ")";
+                               
+                                if (o == companyList[q].staffLists[i].titleDuty[e].dutyList.Count - 1)
+                                {
 
-                            description += DateTime.ParseExact(companyList[q].staffLists[i].titleDuty[e].dutyList[o].date.ToString(), "dd-MM-yyyy", CultureInfo.InvariantCulture).ToString("dd/M") + "(" + companyList[q].staffLists[i].titleDuty[e].dutyList[o].shift + ")";
-                            if (!string.IsNullOrEmpty(companyList[q].staffLists[i].titleDuty[e].dutyList[o].reason))
-                            {
-                                description += "(" + companyList[q].staffLists[i].titleDuty[e].dutyList[o].reason + ")";
-                            }
-                            if (o == companyList[q].staffLists[i].titleDuty[e].dutyList.Count - 1)
-                            {
+                                }
+                                else
+                                {
+                                    description += ", ";
 
-                            }
-                            else
-                            {
-                                description += ", ";
+                                }
+                           
 
-                            }
-
-                            eachDutytotal += decimal.Parse(companyList[q].staffLists[i].titleDuty[e].dutyList[o].companySalary);
-
+                                eachDutytotal += decimal.Parse(companyList[q].staffLists[i].titleDuty[e].dutyList[o].companySalary);
+                                }
                         }
-                        body += @$"<tr>
+
+                        if (!string.IsNullOrEmpty(description))
+                        {
+
+                            body += @$"<tr>
                            <td style= 'font-family: verdana'>{companyList[q].staffLists[i].name}</td>
                            <td>{title}</td>
                            <td>{description}</td>
                            <td style='text-align: right;'>{companyList[q].staffLists[i].titleDuty[e].companyUnitPrice}</td>
-                           <td style='text-align: center;'>{companyList[q].staffLists[i].titleDuty[e].dutyList.Count}</td>
+                           <td style='text-align: center;'>{dutyNormalCount}</td>
                            <td style='text-align: right;'>{eachDutytotal}</td>
                          </tr>";
+                        }
+
+
+                        for (int o = 0; o < BonusList.Count; o++)
+                        {
+                            body += @$"<tr>
+                           <td style= 'font-family: verdana'>{companyList[q].staffLists[i].name}</td>
+                           <td>{title}</td>
+                           <td>{DateTime.ParseExact(BonusList[o].date.ToString(), "dd-MM-yyyy", CultureInfo.InvariantCulture).ToString("dd/M") + "(" + BonusList[o].shift + ")"}{BonusList[o].BonusReason}</td>
+                           <td style='text-align: right;'>{BonusList[o].bonusSalary}</td>
+                           <td style='text-align: center;'>1</td>
+                           <td style='text-align: right;'>{BonusList[o].bonusSalary}</td>
+                         </tr>";
+
+                            eachDutytotal += BonusList[o].bonusSalary;
+                        }
+                        for (int o = 0; o < T8List.Count; o++)
+                        {
+                            body += @$"<tr>
+                           <td style= 'font-family: verdana'>{companyList[q].staffLists[i].name}</td>
+                           <td>{title}</td>
+                           <td>{DateTime.ParseExact(T8List[o].date.ToString(), "dd-MM-yyyy", CultureInfo.InvariantCulture).ToString("dd/M") + "(" + T8List[o].shift + ")"}{T8List[o].T8reason}{T8List[o].T8CompanySalaryFormula}</td>
+                           <td style='text-align: right;'>{T8List[o].t8CompanySalary}</td>
+                           <td style='text-align: center;'>1</td>
+                           <td style='text-align: right;'>{T8List[o].t8CompanySalary}</td>
+                         </tr>";
+
+                            eachDutytotal += T8List[o].t8CompanySalary;
+                        }
+
+                        for (int o = 0; o < OTList.Count; o++)
+                        {
+                            body += @$"<tr>
+                           <td style= 'font-family: verdana'>{companyList[q].staffLists[i].name}</td>
+                           <td>{title}</td>
+                           <td>{DateTime.ParseExact(OTList[o].date.ToString(), "dd-MM-yyyy", CultureInfo.InvariantCulture).ToString("dd/M") + "(" + OTList[o].shift + ")"}{OTList[o].OTreason}{OTList[o].OTCompanySalaryFormula}</td>
+                           <td style='text-align: right;'>{OTList[o].OTcompanySalary}</td>
+                           <td style='text-align: center;'>1</td>
+                           <td style='text-align: right;'>{OTList[o].OTcompanySalary}</td>
+                         </tr>";
+
+                            eachDutytotal += decimal.Parse(OTList[o].OTcompanySalary.ToString());
+                        }
 
                     }
                 }
@@ -1257,51 +1406,113 @@ namespace invoice
 
 
                     renderer.PrintOptions.Title = allStaffList[i].name;
+                    
                     for (int e = 0; e < allStaffList[i].companyDuty[q].titleDuty.Count; e++)
                     {
+                        int dutyNormalCount = 0;
                         string description = string.Empty;
                         decimal eachDutytotal = 0;
-
+                        List<duty> T8List = new List<duty>();
+                        List<duty> OTList = new List<duty>();
+                        List<duty> BonusList = new List<duty>();
+                        T8List = allStaffList[i].companyDuty[q].titleDuty[e].dutyList.Where(x => x.T8 == true).ToList();
+                        OTList = allStaffList[i].companyDuty[q].titleDuty[e].dutyList.Where(x => x.OT == true).ToList();
+                        BonusList = allStaffList[i].companyDuty[q].titleDuty[e].dutyList.Where(x => x.bonus == true).ToList();
                         //duty order by date asc
                         allStaffList[i].companyDuty[q].titleDuty[e].dutyList = allStaffList[i].companyDuty[q].titleDuty[e].dutyList.OrderBy(x => x.date).ToList();
 
                         for (int o = 0; o < allStaffList[i].companyDuty[q].titleDuty[e].dutyList.Count; o++)
                         {
-                            description += DateTime.ParseExact(allStaffList[i].companyDuty[q].titleDuty[e].dutyList[o].date.ToString(), "dd-MM-yyyy", CultureInfo.InvariantCulture).ToString("dd/M") + "(" + allStaffList[i].companyDuty[q].titleDuty[e].dutyList[o].shift + ")";
-
-                            if (!string.IsNullOrEmpty(allStaffList[i].companyDuty[q].titleDuty[e].dutyList[o].reason))
+                           
+                            if (allStaffList[i].companyDuty[q].titleDuty[e].dutyList[o].T8 == false && allStaffList[i].companyDuty[q].titleDuty[e].dutyList[o].OT == false)
                             {
-                                description += "(" + allStaffList[i].companyDuty[q].titleDuty[e].dutyList[o].reason + ")";
+                                dutyNormalCount++;
+                                description += DateTime.ParseExact(allStaffList[i].companyDuty[q].titleDuty[e].dutyList[o].date.ToString(), "dd-MM-yyyy", CultureInfo.InvariantCulture).ToString("dd/M") + "(" + allStaffList[i].companyDuty[q].titleDuty[e].dutyList[o].shift + ")";
+
+                               
+
+                                if (o == allStaffList[i].companyDuty[q].titleDuty[e].dutyList.Count - 1)
+                                {
+
+                                }
+                                else
+                                {
+                                    description += ", ";
+
+                                }
+
+                                eachDutytotal += decimal.Parse(allStaffList[i].companyDuty[q].titleDuty[e].dutyList[o].salary);
+                                 
                             }
-
-                            if (o == allStaffList[i].companyDuty[q].titleDuty[e].dutyList.Count - 1)
-                            {
-
-                            }
-                            else
-                            {
-                                description += ", ";
-
-                            }
-
-                            eachDutytotal += decimal.Parse(allStaffList[i].companyDuty[q].titleDuty[e].dutyList[o].salary);
                         }
 
-                        body += @$"<tr>
-                         <td>{allStaffList[i].companyDuty[q].companyName}
+                        if (!string.IsNullOrEmpty(description))
+                        {
+                            body += @$"<tr>
+                         <td>{allStaffList[i].companyDuty[q].companyName}</td>
                           <td>{allStaffList[i].name}</td>
                           <td>{allStaffList[i].companyDuty[q].titleDuty[e].title}</td>
                           <td>{description}</td>
                         <td>{allStaffList[i].companyDuty[q].titleDuty[e].staffUnitPrice}</td>
-                        <td style = 'text-align: center;'>{allStaffList[i].companyDuty[q].titleDuty[e].dutyList.Count}</td>
+                        <td style = 'text-align: center;'>{dutyNormalCount}</td>
                         <td style = 'text-align: right;'>{eachDutytotal}</td>
                         </tr> 
                        ";
+                           
+                        }
 
 
+                        for (int o = 0; o < BonusList.Count; o++)
+                        {
+                            body += @$"<tr>
+                            <td>{allStaffList[i].companyDuty[q].companyName}</td>
+                              <td>{allStaffList[i].name}</td>
+                             <td>{allStaffList[i].companyDuty[q].titleDuty[e].title}</td>
+                           <td>{DateTime.ParseExact(BonusList[o].date.ToString(), "dd-MM-yyyy", CultureInfo.InvariantCulture).ToString("dd/M") + "(" + BonusList[o].shift + ")"}{BonusList[o].BonusReason}</td>
+                           <td>{BonusList[o].bonusSalary}</td>
+                           <td style='text-align: center;'>1</td>
+                           <td style='text-align: right;'>{BonusList[o].bonusSalary}</td>
+                         </tr>";
 
+                            eachDutytotal += BonusList[o].bonusSalary;
+                        }
+
+
+                        for (int o = 0; o < T8List.Count; o++)
+                        {
+                            body += @$"<tr>
+                            <td>{allStaffList[i].companyDuty[q].companyName}</td>
+                              <td>{allStaffList[i].name}</td>
+                             <td>{allStaffList[i].companyDuty[q].titleDuty[e].title}</td>
+                           <td>{DateTime.ParseExact(T8List[o].date.ToString(), "dd-MM-yyyy", CultureInfo.InvariantCulture).ToString("dd/M") + "(" + T8List[o].shift + ")"}{T8List[o].T8reason}{T8List[o].T8StaffSalaryFormula}</td>
+                           <td>{T8List[o].t8StaffSalary}</td>
+                           <td style='text-align: center;'>1</td>
+                           <td style='text-align: right;'>{T8List[o].t8StaffSalary}</td>
+                         </tr>";
+
+                            eachDutytotal += T8List[o].t8StaffSalary;
+                        }
+
+                        for (int o = 0; o < OTList.Count; o++)
+                        {
+                            body += @$"<tr>
+                            <td>{allStaffList[i].companyDuty[q].companyName}</td>
+                              <td>{allStaffList[i].name}</td>
+                             <td>{allStaffList[i].companyDuty[q].titleDuty[e].title}</td>
+                           <td>{DateTime.ParseExact(OTList[o].date.ToString(), "dd-MM-yyyy", CultureInfo.InvariantCulture).ToString("dd/M") + "(" + OTList[o].shift + ")"}{OTList[o].OTreason}{OTList[o].OTStaffSalaryFormula}</td>
+                           <td>{OTList[o].OTStaffsalary}</td>
+                           <td style='text-align: center;'>1</td>
+                           <td style='text-align: right;'>{OTList[o].OTStaffsalary}</td>
+                         </tr>";
+
+                            eachDutytotal += OTList[o].OTStaffsalary;
+                        }
 
                         totalSalary += eachDutytotal;
+
+
+
+
 
 
                     }
