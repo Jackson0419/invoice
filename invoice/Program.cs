@@ -710,7 +710,7 @@ namespace invoice
                                         {
                                              
                               
-                                            if (specialEventsList[p].eventT8orOT == "T8")
+                                            if (specialEventsList[p].eventT8orOT.ToUpper() == "T8")
                                             {
                                                 staffNameList[i].duty[e].T8reason = specialEventsList[p].reason;
                                                 /*  salary *= 1.5;
@@ -741,23 +741,26 @@ namespace invoice
                                                 staffNameList[i].totalStaffSalary += Convert.ToDecimal(staffNameList[i].duty[e].T8StaffAddsalary);*/
 
                                             }
-                                            else if (specialEventsList[p].eventT8orOT == "OT")
+                                            else if (specialEventsList[p].eventT8orOT.ToUpper() == "OT")
                                             {
                                                 staffNameList[i].duty[e].OTreason = specialEventsList[p].reason;
                                                 staffNameList[i].duty[e].OT = true;
-                                    
+
                                                 decimal minutes = Convert.ToDecimal(staffNameList[i].duty[e].dutyHours) * 60;
-
-
+                                                 
                                                 decimal revisedSalary = 0;
                                                 decimal revisedCompanySalary = 0;
-
+                                                string addOrNo = "+";
+                                                if (specialEventsList[p].hours.Contains("-"))
+                                                {
+                                                    addOrNo = "";
+                                                }
                                                 if (staffNameList[i].duty[e].T8 == true)
                                                 {
                                                     revisedSalary = Convert.ToInt32((Convert.ToDouble(minutes) + Convert.ToDouble(specialEventsList[p].hours)) / Convert.ToDouble(minutes) * Convert.ToInt32(t8Staffsalary));
                                                     revisedCompanySalary = Math.Floor((minutes + Convert.ToInt32(specialEventsList[p].hours)) / minutes * Convert.ToInt32(t8CompanySalary));
-                                                    staffNameList[i].duty[e].OTCompanySalaryFormula = @$"({minutes}分鐘 + {specialEventsList[p].hours}分鐘) / {minutes}分鐘 * T8收費{t8CompanySalary}";
-                                                    staffNameList[i].duty[e].OTStaffSalaryFormula = @$"({minutes}分鐘 + {specialEventsList[p].hours}分鐘) / {minutes}分鐘 * T8收費{t8Staffsalary}";
+                                                    staffNameList[i].duty[e].OTCompanySalaryFormula = @$"({Math.Floor(minutes)}分鐘 {addOrNo} {specialEventsList[p].hours}分鐘) / {Math.Floor(minutes)}分鐘 * T8收費{t8CompanySalary}";
+                                                    staffNameList[i].duty[e].OTStaffSalaryFormula = @$"({Math.Floor(minutes)}分鐘 {addOrNo} {specialEventsList[p].hours}分鐘) / {Math.Floor(minutes)}分鐘 * T8收費{t8Staffsalary}";
                                                     staffNameList[i].duty[e].t8CompanySalary = 0;
                                                     staffNameList[i].duty[e].t8StaffSalary = 0;
 
@@ -766,14 +769,14 @@ namespace invoice
                                                 {
                                                     revisedSalary = Convert.ToInt32((Convert.ToDouble(minutes) + Convert.ToDouble(specialEventsList[p].hours)) / Convert.ToDouble(minutes) * salary);
                                                     revisedCompanySalary = Math.Floor((minutes + Convert.ToInt32(specialEventsList[p].hours)) / minutes * Convert.ToInt32(companySalary));
-                                                    staffNameList[i].duty[e].OTCompanySalaryFormula = @$"({minutes}分鐘 + {specialEventsList[p].hours}分鐘) / {minutes}分鐘 * 正常收費{companySalary}";
-                                                    staffNameList[i].duty[e].OTStaffSalaryFormula = @$"({minutes}分鐘 + {specialEventsList[p].hours}分鐘) / {minutes}分鐘 * 正常收費{salary}";
+                                                    staffNameList[i].duty[e].OTCompanySalaryFormula = @$"({Math.Floor(minutes)}分鐘 {addOrNo} {specialEventsList[p].hours}分鐘) / {Math.Floor(minutes)}分鐘 * 正常收費{companySalary}";
+                                                    staffNameList[i].duty[e].OTStaffSalaryFormula = @$"({Math.Floor(minutes)}分鐘 {addOrNo} {specialEventsList[p].hours}分鐘) / {Math.Floor(minutes)}分鐘 * 正常收費{salary}";
 
                                                 }
-                                                   
 
-                                      
-                                                 
+
+
+
                                                 staffNameList[i].duty[e].salary = Convert.ToDecimal(salary).ToString();
                                                 staffNameList[i].duty[e].companySalary = Convert.ToDecimal(companySalary.ToString()).ToString();
 
@@ -782,21 +785,22 @@ namespace invoice
 
 
                                                 staffNameList[i].totalSalaryForCompany += Convert.ToDecimal(revisedCompanySalary);
-                                                staffNameList[i].totalStaffSalary +=  Convert.ToDecimal(revisedSalary);
+                                                staffNameList[i].totalStaffSalary += Convert.ToDecimal(revisedSalary);
 
                                             }
-                                            else
+                                            else if(specialEventsList[p].eventT8orOT.ToUpper() == "BONUS")
                                             {
                                                 staffNameList[i].duty[e].BonusReason = specialEventsList[p].reason;
                                                 staffNameList[i].duty[e].bonus = true;
                                                 staffNameList[i].duty[e].bonusSalary = decimal.Parse(specialEventsList[p].hours);
-
+                                                staffNameList[i].totalSalaryForCompany += decimal.Parse(specialEventsList[p].hours);
+                                                staffNameList[i].totalStaffSalary += decimal.Parse(specialEventsList[p].hours); 
 
                                             }
                                         }
                                     }
 
-                                    if(staffNameList[i].duty[e].OT == false && staffNameList[i].duty[e].T8 == false && staffNameList[i].duty[e].bonus == false)
+                                    if(staffNameList[i].duty[e].OT == false && staffNameList[i].duty[e].T8 == false)
                                     {
                                         staffNameList[i].totalSalaryForCompany += Convert.ToDecimal(companySalary);
                                         staffNameList[i].totalStaffSalary += Convert.ToDecimal(salary);
@@ -1357,7 +1361,7 @@ namespace invoice
             </div>
           </body>
         </html>";
-
+                companyList[q].invoiceTotalSalary = allTotal.ToString();
                 if (check1 == "1")
                 {
                     var pdf = await renderer.RenderHtmlAsPdfAsync(html);
@@ -1742,7 +1746,10 @@ namespace invoice
             cell.PutValue("聯絡人");
             cell = cells["C1"];
             cell.PutValue("地址");
-
+            cell = cells["D1"];
+            cell.PutValue("發票號碼");
+            cell = cells["E1"];
+            cell.PutValue("發票金額");
             for (int i = 0; i < companyList.Count; i++)
             {
                 cell = cells[@$"A{i + 2}"];
@@ -1751,7 +1758,11 @@ namespace invoice
                 cell.PutValue(companyList[i].contactPeople);
                 cell = cells[@$"C{i + 2}"];
                 cell.PutValue(companyList[i].address);
-
+                cell = cells[@$"D{i + 2}"];
+                cell.PutValue(companyList[i].invoiceNum);
+                cell = cells[@$"E{i + 2}"];
+                cell.PutValue(companyList[i].invoiceTotalSalary);
+               
             }
 
             // 保存 Excel 文件。
