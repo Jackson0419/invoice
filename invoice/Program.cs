@@ -9,6 +9,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -60,6 +61,7 @@ namespace invoice
         public static totalAmountObj companyTotalAmountList = new totalAmountObj();
         public static totalAmountObj staffTotalAmountList = new totalAmountObj();
         public static string check1 = string.Empty;
+        public static List<titleTotalAmount> titleTotalAmountList = new List<titleTotalAmount>();
         static async Task Main(string[] args)
         {
 
@@ -116,9 +118,10 @@ namespace invoice
 
                 string url = $"https://testsds123-669967cd5270.herokuapp.com/";
                 using var client = new HttpClient();
-                var response = client.GetAsync(url).GetAwaiter().GetResult();
+               /* var response = client.GetAsync(url).GetAwaiter().GetResult();
                 var content = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();// response value*/
 
+                 var content = "success";
                 Console.WriteLine("將 timesheet.xlsx 放入資料夾 " + timeSheetFolder);
                 Console.WriteLine("將 logo.jpg和company_salary.xlsx和staff_salary.xlsx和bank.xlsx 放入資料夾 " + generalFolder);
                 Console.WriteLine("1 = Gen Company Invoice, 2 = Gen Staff Invoice, 3 = Gen HtmlCode");
@@ -283,28 +286,28 @@ namespace invoice
                                     {
                                         for (int i = 7; i <= rows; i++)
                                         {
-                                            
+
                                             System.Diagnostics.Debug.WriteLine(i);
                                             var date = worksheet.Cells[i, j].Value != null ? worksheet.Cells[i, j].Value.ToString().Trim() : null;
                                             if (string.IsNullOrEmpty(date))
                                             {
                                                 date = null;
                                             }
-                                            date = date!=null ? DateTime.Parse(worksheet.Cells[i, j].Value.ToString().Trim()).ToString("dd-MM-yyyy") : null;
+                                            date = date != null ? DateTime.Parse(worksheet.Cells[i, j].Value.ToString().Trim()).ToString("dd-MM-yyyy") : null;
                                             var name = worksheet.Cells[i, j + 1].Value != null ? worksheet.Cells[i, j + 1].Value.ToString() : null;
                                             var shift = worksheet.Cells[i, j + 2].Value != null ? worksheet.Cells[i, j + 2].Value.ToString() : null;
                                             var salary = worksheet.Cells[i, j + 3].Value != null ? worksheet.Cells[i, j + 3].Value.ToString() : null;
                                             var reason = worksheet.Cells[i, j + 4].Value != null ? worksheet.Cells[i, j + 4].Value.ToString() : null;
 
-                                          
+
                                             string[] reasonList = new string[2];
                                             if (reason != null)
                                             {
                                                 reasonList = reason.Split(',');
-                                                if(reasonList.Length < 2)
+                                                if (reasonList.Length < 2)
                                                 {
                                                     throw new Exception("Reason Format 錯, 正常Format : Salary入小時 | Reason 入 OT,原因 / T8,原因\n Salary入金額 Reason 入 bonus,原因");
-                                                    
+
                                                 }
                                             }
                                             if (name != null)
@@ -626,7 +629,7 @@ namespace invoice
                                     {
                                         if (BankSheet.Cells[e, i].Value != null)
                                         {
-                                         /*   System.Diagnostics.Debug.WriteLine(BankSheet.Cells[e, i].Value.ToString());*/
+                                            /*   System.Diagnostics.Debug.WriteLine(BankSheet.Cells[e, i].Value.ToString());*/
                                             for (int q = 0; q < staffNameList.Count; q++)
                                             {
 
@@ -708,8 +711,8 @@ namespace invoice
                                     {
                                         if (specialEventsList[p].name == staffNameList[i].name && specialEventsList[p].date == staffNameList[i].duty[e].date && specialEventsList[p].shift == staffNameList[i].duty[e].dutyTime)
                                         {
-                                             
-                              
+
+
                                             if (specialEventsList[p].eventT8orOT.ToUpper() == "T8")
                                             {
                                                 staffNameList[i].duty[e].T8reason = specialEventsList[p].reason;
@@ -718,7 +721,7 @@ namespace invoice
                                                 staffNameList[i].duty[e].T8 = true;
 
                                                 staffNameList[i].duty[e].T8StaffRemovesalary = Math.Floor(Convert.ToDouble((salary / (Convert.ToDouble(staffNameList[i].duty[e].dutyHours) * 60)) * Convert.ToDouble(specialEventsList[p].hours)));
-                                                staffNameList[i].duty[e].T8StaffAddsalary = Math.Floor(Convert.ToDouble((salary / (Convert.ToDouble(staffNameList[i].duty[e].dutyHours) *60)) * Convert.ToDouble(specialEventsList[p].hours) * 1.5));
+                                                staffNameList[i].duty[e].T8StaffAddsalary = Math.Floor(Convert.ToDouble((salary / (Convert.ToDouble(staffNameList[i].duty[e].dutyHours) * 60)) * Convert.ToDouble(specialEventsList[p].hours) * 1.5));
                                                 staffNameList[i].duty[e].T8CompanyRemoveSalary = Math.Floor(Convert.ToDouble((companySalary / (Convert.ToDouble(staffNameList[i].duty[e].dutyHours) * 60)) * Convert.ToDouble(specialEventsList[p].hours)));
                                                 staffNameList[i].duty[e].T8CompanyAddSalary = Math.Floor(Convert.ToDouble((companySalary / (Convert.ToDouble(staffNameList[i].duty[e].dutyHours) * 60)) * Convert.ToDouble(specialEventsList[p].hours) * 2));
 
@@ -735,10 +738,10 @@ namespace invoice
 
                                                 staffNameList[i].totalSalaryForCompany += t8CompanySalary;
                                                 staffNameList[i].totalStaffSalary += t8Staffsalary;
-                                  /*              staffNameList[i].totalSalaryForCompany +=  Convert.ToDecimal(staffNameList[i].duty[e].T8CompanyAddSalary);
-                                                staffNameList[i].totalStaffSalary -= Convert.ToDecimal(staffNameList[i].duty[e].T8StaffRemovesalary);
-                                                staffNameList[i].totalSalaryForCompany -= Convert.ToDecimal(staffNameList[i].duty[e].T8CompanyRemoveSalary);
-                                                staffNameList[i].totalStaffSalary += Convert.ToDecimal(staffNameList[i].duty[e].T8StaffAddsalary);*/
+                                                /*              staffNameList[i].totalSalaryForCompany +=  Convert.ToDecimal(staffNameList[i].duty[e].T8CompanyAddSalary);
+                                                              staffNameList[i].totalStaffSalary -= Convert.ToDecimal(staffNameList[i].duty[e].T8StaffRemovesalary);
+                                                              staffNameList[i].totalSalaryForCompany -= Convert.ToDecimal(staffNameList[i].duty[e].T8CompanyRemoveSalary);
+                                                              staffNameList[i].totalStaffSalary += Convert.ToDecimal(staffNameList[i].duty[e].T8StaffAddsalary);*/
 
                                             }
                                             else if (specialEventsList[p].eventT8orOT.ToUpper() == "OT")
@@ -747,7 +750,7 @@ namespace invoice
                                                 staffNameList[i].duty[e].OT = true;
 
                                                 decimal minutes = Convert.ToDecimal(staffNameList[i].duty[e].dutyHours) * 60;
-                                                 
+
                                                 decimal revisedSalary = 0;
                                                 decimal revisedCompanySalary = 0;
                                                 string addOrNo = "+";
@@ -788,29 +791,29 @@ namespace invoice
                                                 staffNameList[i].totalStaffSalary += Convert.ToDecimal(revisedSalary);
 
                                             }
-                                            else if(specialEventsList[p].eventT8orOT.ToUpper() == "BONUS")
+                                            else if (specialEventsList[p].eventT8orOT.ToUpper() == "BONUS")
                                             {
                                                 staffNameList[i].duty[e].BonusReason = specialEventsList[p].reason;
                                                 staffNameList[i].duty[e].bonus = true;
                                                 staffNameList[i].duty[e].bonusSalary = decimal.Parse(specialEventsList[p].hours);
                                                 staffNameList[i].totalSalaryForCompany += decimal.Parse(specialEventsList[p].hours);
-                                                staffNameList[i].totalStaffSalary += decimal.Parse(specialEventsList[p].hours); 
+                                                staffNameList[i].totalStaffSalary += decimal.Parse(specialEventsList[p].hours);
 
                                             }
                                         }
                                     }
 
-                                    if(staffNameList[i].duty[e].OT == false && staffNameList[i].duty[e].T8 == false)
+                                    if (staffNameList[i].duty[e].OT == false && staffNameList[i].duty[e].T8 == false)
                                     {
                                         staffNameList[i].totalSalaryForCompany += Convert.ToDecimal(companySalary);
                                         staffNameList[i].totalStaffSalary += Convert.ToDecimal(salary);
                                     }
                                     else
                                     {
-                                     
+
 
                                     }
-                                
+
 
                                 }
 
@@ -978,13 +981,14 @@ namespace invoice
 
             // 得到第一個工作表。
             Worksheet sheet1 = wb.Worksheets[0];
-            sheet1.Cells.SetColumnWidth(1, 20.0);
-            sheet1.Cells.SetColumnWidth(2, 30.0);
+            sheet1.Name = "TotalAmountWithStaffOtherFee";
+            sheet1.Cells.SetColumnWidth(0, 30.0);
+            sheet1.Cells.SetColumnWidth(1, 10.0);
+            sheet1.Cells.SetColumnWidth(2, 10.0);
             sheet1.Cells.SetColumnWidth(3, 10.0);
             sheet1.Cells.SetColumnWidth(4, 10.0);
             sheet1.Cells.SetColumnWidth(5, 10.0);
             sheet1.Cells.SetColumnWidth(6, 10.0);
-            sheet1.Cells.SetColumnWidth(7, 10.0);
             // 獲取工作表的單元格集合
             Cells cells = sheet1.Cells;
 
@@ -1020,6 +1024,125 @@ namespace invoice
                 cell.PutValue(staffAmountList.eachTotal[i].name);
                 cell = cells[@$"F{i + 3}"];
                 cell.PutValue(staffAmountList.eachTotal[i].total);
+            }
+
+            //--------------------------------------------------
+            int q = wb.Worksheets.Add();
+            decimal companyTotal = 0;
+            decimal staffTotal = 0;
+            int companyIndex = 0;
+            int staffIndex = 0;
+            for (int i = 0; i < titleTotalAmountList.Count; i++)
+            {
+
+                Worksheet worksheet = wb.Worksheets[q];
+                worksheet.Name = "TotalAmountWithOutStaffOtherFee";
+                worksheet.Cells.SetColumnWidth(0, 30.0);
+                worksheet.Cells.SetColumnWidth(1, 10.0);
+                worksheet.Cells.SetColumnWidth(2, 10.0);
+                worksheet.Cells.SetColumnWidth(3, 10.0);
+                worksheet.Cells.SetColumnWidth(4, 10.0);
+                worksheet.Cells.SetColumnWidth(5, 10.0);
+                worksheet.Cells.SetColumnWidth(6, 10.0);
+                // 獲取工作表的單元格集合
+                Cells cells1 = worksheet.Cells;
+
+                // 為單元格設置值
+                Aspose.Cells.Cell cell1 = cells1["A2"];
+                cell1.PutValue("院舍");
+                cell1 = cells1["B2"];
+                cell1.PutValue("Total");
+
+
+                cell1 = cells1["E2"];
+                cell1.PutValue("員工");
+                cell1 = cells1["F2"];
+                cell1.PutValue("Total");
+
+                
+                
+                for (int j = 0; j < titleTotalAmountList[i].companys.Count; j++)
+                {
+                    cell1 = cells1[@$"A{companyIndex + 3}"];
+                    cell1.PutValue(titleTotalAmountList[i].companys[j].name);
+                    cell1 = cells1[@$"B{companyIndex + 3}"];
+                    cell1.PutValue(titleTotalAmountList[i].companys[j].amount);
+                    cell1 = cells1[@$"C{companyIndex + 3}"];
+                    cell1.PutValue(titleTotalAmountList[i].title);
+                    companyTotal += titleTotalAmountList[i].companys[j].amount;
+                    companyIndex++;
+                }
+                for (int j = 0; j < titleTotalAmountList[i].staffs.Count; j++)
+                {
+                    cell1 = cells1[@$"E{staffIndex + 3}"];
+                    cell1.PutValue(titleTotalAmountList[i].staffs[j].name);
+                    cell1 = cells1[@$"F{staffIndex + 3}"];
+                    cell1.PutValue(titleTotalAmountList[i].staffs[j].amount);
+                    cell1 = cells1[@$"G{staffIndex + 3}"];
+                    cell1.PutValue(titleTotalAmountList[i].title);
+                    staffTotal += titleTotalAmountList[i].staffs[j].amount;
+                    staffIndex++;
+                }
+
+                cell1 = cells1[@$"B1"];
+                cell1.PutValue(companyTotal);
+
+                cell1 = cells1[@$"F1"];
+                cell1.PutValue(staffTotal);
+            }
+                //--------------------------------------------------
+                for (int i = 0; i < titleTotalAmountList.Count;i++)
+            {
+                int e = wb.Worksheets.Add();
+                Worksheet worksheet = wb.Worksheets[e];
+                worksheet.Name = titleTotalAmountList[i].title;
+                worksheet.Cells.SetColumnWidth(0, 30.0);
+                worksheet.Cells.SetColumnWidth(1, 10.0);
+                worksheet.Cells.SetColumnWidth(2, 10.0);
+                worksheet.Cells.SetColumnWidth(3, 10.0);
+                worksheet.Cells.SetColumnWidth(4, 10.0);
+                worksheet.Cells.SetColumnWidth(5, 10.0);
+                worksheet.Cells.SetColumnWidth(6, 10.0);
+                // 獲取工作表的單元格集合
+                Cells cells1 = worksheet.Cells;
+
+                // 為單元格設置值
+                Aspose.Cells.Cell cell1 = cells1["A2"];
+                cell1.PutValue("院舍");
+                cell1 = cells1["B2"];
+                cell1.PutValue("Total");
+
+
+                cell1 = cells1["E2"];
+                cell1.PutValue("員工");
+                cell1 = cells1["F2"];
+                cell1.PutValue("Total");
+
+                companyTotal = 0;
+                staffTotal = 0;
+                for (int j = 0; j < titleTotalAmountList[i].companys.Count; j++)
+                {
+                    cell1 = cells1[@$"A{j + 3}"];
+                    cell1.PutValue(titleTotalAmountList[i].companys[j].name);
+                    cell1 = cells1[@$"B{j + 3}"];
+                    cell1.PutValue(titleTotalAmountList[i].companys[j].amount);
+                    companyTotal += titleTotalAmountList[i].companys[j].amount;
+
+                }
+                for (int j = 0; j < titleTotalAmountList[i].staffs.Count; j++)
+                {
+                    cell1 = cells1[@$"E{j + 3}"];
+                    cell1.PutValue(titleTotalAmountList[i].staffs[j].name);
+                    cell1 = cells1[@$"F{j + 3}"];
+                    cell1.PutValue(titleTotalAmountList[i].staffs[j].amount);
+                    staffTotal += titleTotalAmountList[i].staffs[j].amount;
+                }
+
+                cell1 = cells1[@$"B1"];
+                cell1.PutValue(companyTotal);
+
+                cell1 = cells1[@$"F1"];
+                cell1.PutValue(staffTotal);
             }
             // 保存 Excel 文件。
             wb.Save(outputFolder + "Total Amount_output.xlsx", SaveFormat.Xlsx);
@@ -1109,6 +1232,8 @@ namespace invoice
             {
                 Console.WriteLine("company invoice processing");
             }
+
+
             for (int q = 0; q < companyList.Count; q++)
             {
                 if (check1 == "1")
@@ -1116,7 +1241,7 @@ namespace invoice
                     Console.WriteLine("company invoice " + q + "/" + companyList.Count);
                 }
                 decimal allTotal = 0;
-                renderer.PrintOptions.Title = companyList[q].companyOutPutPath + companyList[q].customerName + "總invoice_" + companyList[q].invoiceMonth + "月";
+                renderer.PrintOptions.Title = companyList[q].companyOutPutPath + companyList[q].customerName + companyList[q].invoiceNoForCompanySalary + "_invoice_" + companyList[q].invoiceMonth + "月";
                 string body = string.Empty;
 
                 for (int i = 0; i < companyList[q].staffLists.Count; i++)
@@ -1146,11 +1271,12 @@ namespace invoice
 
                         for (int o = 0; o < companyList[q].staffLists[i].titleDuty[e].dutyList.Count; o++)
                         {
-                            if (companyList[q].staffLists[i].titleDuty[e].dutyList[o].T8 == false && companyList[q].staffLists[i].titleDuty[e].dutyList[o].OT == false) {
+                            if (companyList[q].staffLists[i].titleDuty[e].dutyList[o].T8 == false && companyList[q].staffLists[i].titleDuty[e].dutyList[o].OT == false)
+                            {
                                 dutyNormalCount++;
-                                
+
                                 description += DateTime.ParseExact(companyList[q].staffLists[i].titleDuty[e].dutyList[o].date.ToString(), "dd-MM-yyyy", CultureInfo.InvariantCulture).ToString("dd/M") + "(" + companyList[q].staffLists[i].titleDuty[e].dutyList[o].shift + ")";
-                               
+
                                 if (o == companyList[q].staffLists[i].titleDuty[e].dutyList.Count - 1)
                                 {
 
@@ -1160,10 +1286,10 @@ namespace invoice
                                     description += ", ";
 
                                 }
-                           
+
 
                                 eachDutytotal += decimal.Parse(companyList[q].staffLists[i].titleDuty[e].dutyList[o].companySalary);
-                                }
+                            }
                         }
 
                         if (!string.IsNullOrEmpty(description))
@@ -1220,6 +1346,49 @@ namespace invoice
 
                             eachDutytotal += decimal.Parse(OTList[o].OTcompanySalary.ToString());
                         }
+
+                        
+                        var checkTitle = titleTotalAmountList.Any(x => x.title == companyList[q].staffLists[i].titleDuty[e].title);
+                  
+                        if (checkTitle == false)
+                        {
+                            titleTotalAmountList.Add(
+                                new titleTotalAmount
+                                {
+                                    title = companyList[q].staffLists[i].titleDuty[e].title,
+                                    companys = new List<titleTotalAmountObj>(),
+                                    staffs = new List<titleTotalAmountObj>(),
+                                }
+                            );
+                        }
+
+                        bool checkExists = false;
+                        for (int o = 0; o < titleTotalAmountList.Count; o++)
+                        {
+                            if (titleTotalAmountList[o].title == companyList[q].staffLists[i].titleDuty[e].title)
+                            {
+
+                                for (int a = 0; a < titleTotalAmountList[o].companys.Count; a++)
+                                {
+
+                                    if (titleTotalAmountList[o].companys[a].name == companyList[q].customerName + companyList[q].invoiceNoForCompanySalary)
+                                    {
+                                        checkExists = true;
+                                        titleTotalAmountList[o].companys[a].amount += eachDutytotal;
+                                    }
+
+                                }
+                                if (checkExists == false)
+                                {
+                                    titleTotalAmountList[o].companys.Add(new titleTotalAmountObj
+                                    {
+                                        name = companyList[q].customerName + companyList[q].invoiceNoForCompanySalary,
+                                        amount = eachDutytotal
+                                    });
+                                }
+                            }  
+                        }
+
 
                     }
                 }
@@ -1324,7 +1493,7 @@ namespace invoice
                 <tr>  
 
                   <td width ='85px'><center>Details</center></td>
-                  <td width ='50px'><center>Total Amount Received HK$</center></td>
+                  <td width ='50px'><center>Total Amount Received</center></td>
           
                 </tr>
                 <tr>
@@ -1342,7 +1511,7 @@ namespace invoice
             <table>
 
             <tr>
-                <td style='font-size: 13px;'> <u>Remarks：</u> 
+                <td style='font-size: 13px;'> <b>Remarks：</b> 
                     <br> Above is the <b>offical receipt</b> for the <b>corresponding invoice</b>. For any receipt enquiries, please contact our Accounting Department (<b>Ms Ng</b>/<b>Mr Chan</b>).                                             <br>Email: ao@hygienefirstgroup.com
                         <br>Office Ext: 3618 9333<br>
                         Mobile / Whatsapp: 9326 7321
@@ -1366,18 +1535,18 @@ namespace invoice
                 {
                     var pdf = await renderer.RenderHtmlAsPdfAsync(html);
 
-                    pdf.SaveAs(companyList[q].companyOutPutPath + companyList[q].customerName + companyList[q].invoiceNoForCompanySalary + "總invoice_" + companyList[q].invoiceMonth + "月" + ".pdf");
+                    pdf.SaveAs(companyList[q].companyOutPutPath + companyList[q].customerName + companyList[q].invoiceNoForCompanySalary + "_invoice_" + companyList[q].invoiceMonth + "月" + ".pdf");
 
                     var forCompanyReceiptpdf = await renderer.RenderHtmlAsPdfAsync(giveBackCompanyHtml);
 
-                    forCompanyReceiptpdf.SaveAs(companyList[q].companyOutPutPath + "Receipt_" + companyList[q].customerName + companyList[q].invoiceNoForCompanySalary + "總invoice_" + companyList[q].invoiceMonth + "月" + ".pdf");
+                    forCompanyReceiptpdf.SaveAs(companyList[q].companyOutPutPath + "Receipt_" + companyList[q].customerName + companyList[q].invoiceNoForCompanySalary + "_invoice_" + companyList[q].invoiceMonth + "月" + ".pdf");
 
-                    using (var sw = new StreamWriter(outputCompanyInvoiceHtmlFolder + companyList[q].customerName + companyList[q].invoiceNoForCompanySalary + "總invoice_" + companyList[q].invoiceMonth + "月.txt"))
+                    using (var sw = new StreamWriter(outputCompanyInvoiceHtmlFolder + companyList[q].customerName + companyList[q].invoiceNoForCompanySalary + "_invoice_" + companyList[q].invoiceMonth + "月.txt"))
                     {
                         sw.WriteLine(html);
                     }
 
-                    using (var sw = new StreamWriter(outputCompanyInvoiceReceiptHtmlFolder + "Receipt_" + companyList[q].customerName + companyList[q].invoiceNoForCompanySalary + "總invoice_" + companyList[q].invoiceMonth + "月.txt"))
+                    using (var sw = new StreamWriter(outputCompanyInvoiceReceiptHtmlFolder + "Receipt_" + companyList[q].customerName + companyList[q].invoiceNoForCompanySalary + "_invoice_" + companyList[q].invoiceMonth + "月.txt"))
                     {
                         sw.WriteLine(giveBackCompanyHtml);
                     }
@@ -1410,7 +1579,7 @@ namespace invoice
 
 
                     renderer.PrintOptions.Title = allStaffList[i].name;
-                    
+
                     for (int e = 0; e < allStaffList[i].companyDuty[q].titleDuty.Count; e++)
                     {
                         int dutyNormalCount = 0;
@@ -1427,13 +1596,13 @@ namespace invoice
 
                         for (int o = 0; o < allStaffList[i].companyDuty[q].titleDuty[e].dutyList.Count; o++)
                         {
-                           
+
                             if (allStaffList[i].companyDuty[q].titleDuty[e].dutyList[o].T8 == false && allStaffList[i].companyDuty[q].titleDuty[e].dutyList[o].OT == false)
                             {
                                 dutyNormalCount++;
                                 description += DateTime.ParseExact(allStaffList[i].companyDuty[q].titleDuty[e].dutyList[o].date.ToString(), "dd-MM-yyyy", CultureInfo.InvariantCulture).ToString("dd/M") + "(" + allStaffList[i].companyDuty[q].titleDuty[e].dutyList[o].shift + ")";
 
-                               
+
 
                                 if (o == allStaffList[i].companyDuty[q].titleDuty[e].dutyList.Count - 1)
                                 {
@@ -1446,7 +1615,7 @@ namespace invoice
                                 }
 
                                 eachDutytotal += decimal.Parse(allStaffList[i].companyDuty[q].titleDuty[e].dutyList[o].salary);
-                                 
+
                             }
                         }
 
@@ -1462,7 +1631,7 @@ namespace invoice
                         <td style = 'text-align: right;'>{eachDutytotal}</td>
                         </tr> 
                        ";
-                           
+
                         }
 
 
@@ -1516,8 +1685,45 @@ namespace invoice
 
 
 
+                     /*   var checkTitle = titleTotalAmountList.Any(x => x.title.Contains(allStaffList[i].companyDuty[q].titleDuty[e].title));
 
+                        if (checkTitle == false)
+                        {
+                            titleTotalAmountList.Add(
+                                new titleTotalAmount
+                                {
+                                    title = allStaffList[i].companyDuty[q].titleDuty[e].title,
+                                    staffs = new List<titleTotalAmountObj>()
+                                }
+                            );
+                        }*/
 
+                        bool checkExists = false;
+                        for (int o = 0; o < titleTotalAmountList.Count; o++)
+                        {
+                            if (titleTotalAmountList[o].title == allStaffList[i].companyDuty[q].titleDuty[e].title)
+                            {
+
+                                for (int a = 0; a < titleTotalAmountList[o].staffs.Count; a++)
+                                {
+
+                                    if (titleTotalAmountList[o].staffs[a].name == allStaffList[i].name)
+                                    {
+                                        checkExists = true;
+                                        titleTotalAmountList[o].staffs[a].amount += eachDutytotal;
+                                    }
+
+                                }
+                                if (checkExists == false)
+                                {
+                                    titleTotalAmountList[o].staffs.Add(new titleTotalAmountObj
+                                    {
+                                        name = allStaffList[i].name,
+                                        amount = eachDutytotal
+                                    });
+                                }
+                            }
+                        }
 
                     }
 
@@ -1684,7 +1890,13 @@ namespace invoice
               <table>
                 
                 <tr>
-                  <td style='font-size: 16px;font-family: verdana'><center><I> 如對以上服務紀錄表有任何查詢，請 <b>Whatsapp 6791 6812</b> 與會計部同事聯絡。  </I></center></td>
+                  <td style='font-size: 16px;font-family: verdana'><center><I> 如對以上服務紀錄表有任何查詢，請 <b>Whatsapp 6791 6812</b> 與會計部同事聯絡 <br><font color='red'>(只限Whatsapp)</font>。   </I></center></td>
+                </tr>
+                <tr>
+                  <td style='font-size: 16px;font-family: verdana'><center><I> 會計部核對需時，如服務紀錄有錯，<font color='red'>會於下張服務紀錄表修正</font>。 </I></center></td>
+                </tr>
+                <tr>
+                  <td style='font-size: 16px;font-family: verdana'><center><I> <font color='red'>勤工獎金</font>(因需與院舍對打卡遲到早退紀錄)以及<font color='red'>上門/陪診服務紀錄</font>並<font color='red'>不會</font>在上述服務表<br>顯示。   </I></center></td>
                 </tr>
               </table>
               <br>
@@ -1704,8 +1916,7 @@ namespace invoice
                      <br> 6.如有提供服務當日醫生證明書(病假紙)可獲豁免行政費。
 </td>
             </tr>
-        </table>
-              <b>For and on behalf of <br> Hygiene First Company Limited </b>
+        </table> 
             </div>
           </body>
         </html>";
@@ -1762,7 +1973,7 @@ namespace invoice
                 cell.PutValue(companyList[i].invoiceNum);
                 cell = cells[@$"E{i + 2}"];
                 cell.PutValue(companyList[i].invoiceTotalSalary);
-               
+
             }
 
             // 保存 Excel 文件。

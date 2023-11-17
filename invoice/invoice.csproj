@@ -7,7 +7,9 @@
 
   <ItemGroup>
     <PackageReference Include="Aspose.Cells" Version="23.7.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="PugPDF.Core" Version="1.0.9" />
+    <PackageReference Include="Spire.PDF" Version="9.11.4" />
   </ItemGroup>
 
 </Project>
