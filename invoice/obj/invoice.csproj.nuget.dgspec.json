@@ -1,24 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\jacksonchin\\Desktop\\free\\invoice\\invoice\\invoice.csproj": {}
+    "C:\\Users\\jacksonchin\\Desktop\\invoice_git\\invoice\\invoice\\invoice.csproj": {}
   },
   "projects": {
-    "C:\\Users\\jacksonchin\\Desktop\\free\\invoice\\invoice\\invoice.csproj": {
+    "C:\\Users\\jacksonchin\\Desktop\\invoice_git\\invoice\\invoice\\invoice.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\jacksonchin\\Desktop\\free\\invoice\\invoice\\invoice.csproj",
+        "projectUniqueName": "C:\\Users\\jacksonchin\\Desktop\\invoice_git\\invoice\\invoice\\invoice.csproj",
         "projectName": "invoice",
-        "projectPath": "C:\\Users\\jacksonchin\\Desktop\\free\\invoice\\invoice\\invoice.csproj",
+        "projectPath": "C:\\Users\\jacksonchin\\Desktop\\invoice_git\\invoice\\invoice\\invoice.csproj",
         "packagesPath": "C:\\Users\\jacksonchin\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\jacksonchin\\Desktop\\free\\invoice\\invoice\\obj\\",
+        "outputPath": "C:\\Users\\jacksonchin\\Desktop\\invoice_git\\invoice\\invoice\\obj\\",
         "projectStyle": "PackageReference",
-        "fallbackFolders": [
-          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
-        ],
         "configFilePaths": [
           "C:\\Users\\jacksonchin\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
@@ -47,6 +43,10 @@
             "Aspose.Cells": {
               "target": "Package",
               "version": "[23.7.0, )"
+            },
+            "Newtonsoft.Json": {
+              "target": "Package",
+              "version": "[13.0.3, )"
             },
             "PugPDF.Core": {
               "target": "Package",

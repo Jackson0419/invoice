@@ -1,15 +1,12 @@
 ﻿
 using Aspose.Cells;
-using Aspose.Cells.Charts;
 using PugPdf.Core;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 
