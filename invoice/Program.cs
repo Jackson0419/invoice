@@ -52,7 +52,7 @@ namespace invoice
         public static string outputStaffInvoiceHtmlFolder = desktopPath + "\\" + "invoice\\" + DateTime.Now.ToString("yyyyMMdd") + "\\ouputHtml\\staff\\";
         public static string inputHtmlFolder = desktopPath + "\\" + "invoice\\" + DateTime.Now.ToString("yyyyMMdd") + "\\inputHtml\\";
         public static string outputHtmlFolder = desktopPath + "\\" + "invoice\\" + DateTime.Now.ToString("yyyyMMdd") + "\\inputHtml\\output\\";
-
+         
         public static List<companyDuty> companyDuties = new List<companyDuty>();
         public static string invoiceDate = string.Empty;
         public static totalAmountObj companyTotalAmountList = new totalAmountObj();
@@ -637,11 +637,12 @@ namespace invoice
                                                     staffNameList[q].firstRegisterFees = BankSheet.Cells[e, 3].Value != null ? BankSheet.Cells[e, 3].Value.ToString() : null;
                                                     staffNameList[q].uniformFees = BankSheet.Cells[e, 4].Value != null ? BankSheet.Cells[e, 4].Value.ToString() : null;
                                                     staffNameList[q].cancelFees = BankSheet.Cells[e, 5].Value != null ? BankSheet.Cells[e, 5].Value.ToString() : null;
-                                                    staffNameList[q].otherFees = BankSheet.Cells[e, 6].Value != null ? BankSheet.Cells[e, 6].Value.ToString() : null;
+                                                    staffNameList[q].checkAdministrationFees = BankSheet.Cells[e, 6].Value != null ? BankSheet.Cells[e, 6].Value.ToString() : null;
                                                     staffNameList[q].urgentFees = BankSheet.Cells[e, 7].Value != null ? BankSheet.Cells[e, 7].Value.ToString() : null;
                                                     staffNameList[q].bonus = BankSheet.Cells[e, 8].Value != null ? BankSheet.Cells[e, 8].Value.ToString() : null;
                                                     staffNameList[q].transportFees = BankSheet.Cells[e, 9].Value != null ? BankSheet.Cells[e, 9].Value.ToString() : null;
-                                                    staffNameList[q].remark = BankSheet.Cells[e, 11].Value != null ? BankSheet.Cells[e, 11].Value.ToString() : null;
+                                                    staffNameList[q].changeFees = BankSheet.Cells[e, 10].Value != null ? BankSheet.Cells[e, 10].Value.ToString() : null;
+                                                    staffNameList[q].remark = BankSheet.Cells[e, 12].Value != null ? BankSheet.Cells[e, 12].Value.ToString() : null;
 
                                                 }
 
@@ -893,7 +894,8 @@ namespace invoice
                                         cancelFees = staffNameList[i].cancelFees,
                                         bankAccount = staffNameList[i].bankAccount,
 
-                                        otherFees = staffNameList[i].otherFees,
+                                        checkAdministrationFees = staffNameList[i].checkAdministrationFees,
+                                        changeFees = staffNameList[i].changeFees,
                                         remark = staffNameList[i].remark,
                                         uniformFees = staffNameList[i].uniformFees,
                                         urgentFees = staffNameList[i].urgentFees,
@@ -1184,8 +1186,10 @@ namespace invoice
             cell = cells["J1"];
             cell.PutValue("交通費");
             cell = cells["K1"];
-            cell.PutValue("TOTAL");
+            cell.PutValue("調整");
             cell = cells["L1"];
+            cell.PutValue("TOTAL");
+            cell = cells["M1"];
             cell.PutValue("REMARK");
 
             for (int i = 0; i < allstaffList.Count; i++)
@@ -1204,7 +1208,7 @@ namespace invoice
                 cell = cells[@$"F{i + 2}"];
                 cell.PutValue(allstaffList[i].cancelFees);
                 cell = cells[@$"G{i + 2}"];
-                cell.PutValue(allstaffList[i].otherFees);
+                cell.PutValue(allstaffList[i].checkAdministrationFees);
                 cell = cells[@$"H{i + 2}"];
                 cell.PutValue(allstaffList[i].urgentFees);
                 cell = cells[@$"I{i + 2}"];
@@ -1212,8 +1216,10 @@ namespace invoice
                 cell = cells[@$"J{i + 2}"];
                 cell.PutValue(allstaffList[i].transportFees);
                 cell = cells[@$"K{i + 2}"];
-                cell.PutValue(allstaffList[i].totalSalary);
+                cell.PutValue(allstaffList[i].changeFees);
                 cell = cells[@$"L{i + 2}"];
+                cell.PutValue(allstaffList[i].totalSalary);
+                cell = cells[@$"M{i + 2}"];
                 cell.PutValue(allstaffList[i].remark);
             }
 
@@ -1771,22 +1777,36 @@ namespace invoice
                  </tr>";
 
                 }
-                if (allStaffList[i].otherFees != null)
+                if (allStaffList[i].checkAdministrationFees != null)
                 {
 
-                    totalSalary += decimal.Parse(allStaffList[i].otherFees);
+                    totalSalary += decimal.Parse(allStaffList[i].checkAdministrationFees);
                     body += @$"<tr>
                     <td>N/A</td>
                    <td>{allStaffList[i].name}</td>
                    <td>N/A</td>
-                   <td>雜費</td>
+                   <td>支票行政費</td>
                    <td></td>
                    <td style='text-align: center;'>N/A</td>
-                   <td style='text-align: right;'>{allStaffList[i].otherFees}</td>
+                   <td style='text-align: right;'>{allStaffList[i].checkAdministrationFees}</td>
                  </tr>";
 
                 }
+                if (allStaffList[i].changeFees != null)
+                {
 
+                    totalSalary += decimal.Parse(allStaffList[i].changeFees);
+                    body += @$"<tr>
+                    <td>N/A</td>
+                   <td>{allStaffList[i].name}</td>
+                   <td>N/A</td>
+                   <td>調整</td>
+                   <td></td>
+                   <td style='text-align: center;'>N/A</td>
+                   <td style='text-align: right;'>{allStaffList[i].changeFees}</td>
+                 </tr>";
+
+                }
                 if (allStaffList[i].urgentFees != null)
                 {
 
