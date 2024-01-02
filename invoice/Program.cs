@@ -454,7 +454,15 @@ namespace invoice
                             //------------------- Read salary execl and insert Salary to every staff -------------------------//
                             Workbook SalaryWb = new Workbook(generalFolder + "staff_salary.xlsx");
 
-                            Worksheet SalarySheet = SalaryWb.Worksheets[0];
+                            Worksheet SalarySheet = null;
+
+                            for (int i = 0; i < SalaryWb.Worksheets.Count; i++)
+                            {
+                                if (SalaryWb.Worksheets[i].Name == "一般")
+                                {
+                                    SalarySheet = SalaryWb.Worksheets[i];
+                                }
+                            }
 
                             for (int i = 0; i < SalaryWb.Worksheets.Count; i++)
                             {
@@ -491,7 +499,7 @@ namespace invoice
 
                             Workbook SalaryWb1 = new Workbook(generalFolder + "company_salary.xlsx");
 
-                            Worksheet SalarySheet1 = SalaryWb1.Worksheets[0];
+                            Worksheet SalarySheet1 = null;
                             for (int i = 0; i < SalaryWb1.Worksheets.Count; i++)
                             {
                                 if (SalaryWb1.Worksheets[i].Name == "一般")
@@ -726,15 +734,15 @@ namespace invoice
                                                   companySalary *= 2;*/
                                                 staffNameList[i].duty[e].T8 = true;
 
-                                                staffNameList[i].duty[e].T8StaffRemovesalary = Math.Floor(Convert.ToDouble((salary / (Convert.ToDouble(staffNameList[i].duty[e].dutyHours) * 60)) * Convert.ToDouble(specialEventsList[p].hours)));
-                                                staffNameList[i].duty[e].T8StaffAddsalary = Math.Floor(Convert.ToDouble((salary / (Convert.ToDouble(staffNameList[i].duty[e].dutyHours) * 60)) * Convert.ToDouble(specialEventsList[p].hours) * 1.5));
-                                                staffNameList[i].duty[e].T8CompanyRemoveSalary = Math.Floor(Convert.ToDouble((companySalary / (Convert.ToDouble(staffNameList[i].duty[e].dutyHours) * 60)) * Convert.ToDouble(specialEventsList[p].hours)));
-                                                staffNameList[i].duty[e].T8CompanyAddSalary = Math.Floor(Convert.ToDouble((companySalary / (Convert.ToDouble(staffNameList[i].duty[e].dutyHours) * 60)) * Convert.ToDouble(specialEventsList[p].hours) * 2));
+                                                staffNameList[i].duty[e].T8StaffRemovesalary = Math.Round(Convert.ToDouble((salary / (Convert.ToDouble(staffNameList[i].duty[e].dutyHours) * 60)) * Convert.ToDouble(specialEventsList[p].hours)),1);
+                                                staffNameList[i].duty[e].T8StaffAddsalary = Math.Round(Convert.ToDouble((salary / (Convert.ToDouble(staffNameList[i].duty[e].dutyHours) * 60)) * Convert.ToDouble(specialEventsList[p].hours) * 1.5),1);
+                                                staffNameList[i].duty[e].T8CompanyRemoveSalary = Math.Round(Convert.ToDouble((companySalary / (Convert.ToDouble(staffNameList[i].duty[e].dutyHours) * 60)) * Convert.ToDouble(specialEventsList[p].hours)),1);
+                                                staffNameList[i].duty[e].T8CompanyAddSalary = Math.Round(Convert.ToDouble((companySalary / (Convert.ToDouble(staffNameList[i].duty[e].dutyHours) * 60)) * Convert.ToDouble(specialEventsList[p].hours) * 2), 1);
 
 
                                                 staffNameList[i].duty[e].T8CompanySalaryFormula = @$"(正常收費${companySalary} + ${staffNameList[i].duty[e].T8CompanyRemoveSalary}({specialEventsList[p].hours}分鐘))";
                                                 staffNameList[i].duty[e].T8StaffSalaryFormula = @$"(正常收費${salary} + ${staffNameList[i].duty[e].T8StaffRemovesalary}({specialEventsList[p].hours}分鐘))";
-
+                                         
                                                 t8Staffsalary += Convert.ToDecimal(salary) + Convert.ToDecimal(staffNameList[i].duty[e].T8StaffRemovesalary);
                                                 t8CompanySalary += Convert.ToDecimal(companySalary) + Convert.ToDecimal(staffNameList[i].duty[e].T8CompanyRemoveSalary);
 
@@ -767,7 +775,7 @@ namespace invoice
                                                 if (staffNameList[i].duty[e].T8 == true)
                                                 {
                                                     revisedSalary = Convert.ToInt32((Convert.ToDouble(minutes) + Convert.ToDouble(specialEventsList[p].hours)) / Convert.ToDouble(minutes) * Convert.ToInt32(t8Staffsalary));
-                                                    revisedCompanySalary = Math.Floor((minutes + Convert.ToInt32(specialEventsList[p].hours)) / minutes * Convert.ToInt32(t8CompanySalary));
+                                                    revisedCompanySalary = Math.Round((minutes + Convert.ToInt32(specialEventsList[p].hours)) / minutes * Convert.ToInt32(t8CompanySalary),1);
                                                     staffNameList[i].duty[e].OTCompanySalaryFormula = @$"({Math.Floor(minutes)}分鐘 {addOrNo} {specialEventsList[p].hours}分鐘) / {Math.Floor(minutes)}分鐘 * T8收費{t8CompanySalary}";
                                                     staffNameList[i].duty[e].OTStaffSalaryFormula = @$"({Math.Floor(minutes)}分鐘 {addOrNo} {specialEventsList[p].hours}分鐘) / {Math.Floor(minutes)}分鐘 * T8收費{t8Staffsalary}";
                                                     staffNameList[i].duty[e].t8CompanySalary = 0;
@@ -776,8 +784,8 @@ namespace invoice
                                                 }
                                                 else
                                                 {
-                                                    revisedSalary = Convert.ToInt32((Convert.ToDouble(minutes) + Convert.ToDouble(specialEventsList[p].hours)) / Convert.ToDouble(minutes) * salary);
-                                                    revisedCompanySalary = Math.Floor((minutes + Convert.ToInt32(specialEventsList[p].hours)) / minutes * Convert.ToInt32(companySalary));
+                                                    revisedSalary = Math.Round((Math.Floor(minutes) + Convert.ToInt32(specialEventsList[p].hours)) / Math.Floor(minutes) * Convert.ToDecimal(salary), 1);
+                                                    revisedCompanySalary = Math.Round((minutes + Convert.ToInt32(specialEventsList[p].hours)) / minutes * Convert.ToDecimal(companySalary), 1);
                                                     staffNameList[i].duty[e].OTCompanySalaryFormula = @$"({Math.Floor(minutes)}分鐘 {addOrNo} {specialEventsList[p].hours}分鐘) / {Math.Floor(minutes)}分鐘 * 正常收費{companySalary}";
                                                     staffNameList[i].duty[e].OTStaffSalaryFormula = @$"({Math.Floor(minutes)}分鐘 {addOrNo} {specialEventsList[p].hours}分鐘) / {Math.Floor(minutes)}分鐘 * 正常收費{salary}";
 
