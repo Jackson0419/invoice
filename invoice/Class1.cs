@@ -43,10 +43,11 @@ namespace invoice
         public string firstRegisterFees { get; set; }
         public string uniformFees { get; set; }
         public string cancelFees { get; set; }
-        public string otherFees { get; set; }
+        public string checkAdministrationFees { get; set; }
         public string urgentFees { get; set; }
         public string bonus { get; set; }
         public string transportFees { get; set; }
+        public string changeFees { get; set; }
         public string remark { get; set; }
         public decimal totalStaffSalary { get; set; }
         public decimal totalSalaryOld { get; set; }
@@ -66,7 +67,8 @@ namespace invoice
         public string firstRegisterFees { get; set; }
         public string uniformFees { get; set; }
         public string cancelFees { get; set; }
-        public string otherFees { get; set; }
+        public string checkAdministrationFees { get; set; }
+        public string changeFees { get; set; }
         public string urgentFees { get; set; }
         public string bonus { get; set; }
         public string transportFees { get; set; }

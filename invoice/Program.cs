@@ -52,7 +52,7 @@ namespace invoice
         public static string outputStaffInvoiceHtmlFolder = desktopPath + "\\" + "invoice\\" + DateTime.Now.ToString("yyyyMMdd") + "\\ouputHtml\\staff\\";
         public static string inputHtmlFolder = desktopPath + "\\" + "invoice\\" + DateTime.Now.ToString("yyyyMMdd") + "\\inputHtml\\";
         public static string outputHtmlFolder = desktopPath + "\\" + "invoice\\" + DateTime.Now.ToString("yyyyMMdd") + "\\inputHtml\\output\\";
-         
+
         public static List<companyDuty> companyDuties = new List<companyDuty>();
         public static string invoiceDate = string.Empty;
         public static totalAmountObj companyTotalAmountList = new totalAmountObj();
@@ -115,10 +115,10 @@ namespace invoice
 
                 string url = $"https://testsds123-669967cd5270.herokuapp.com/";
                 using var client = new HttpClient();
-               /* var response = client.GetAsync(url).GetAwaiter().GetResult();
-                var content = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();// response value*/
+                /* var response = client.GetAsync(url).GetAwaiter().GetResult();
+                 var content = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();// response value*/
 
-                 var content = "success";
+                var content = "success";
                 Console.WriteLine("將 timesheet.xlsx 放入資料夾 " + timeSheetFolder);
                 Console.WriteLine("將 logo.jpg和company_salary.xlsx和staff_salary.xlsx和bank.xlsx 放入資料夾 " + generalFolder);
                 Console.WriteLine("1 = Gen Company Invoice, 2 = Gen Staff Invoice, 3 = Gen HtmlCode");
@@ -492,6 +492,14 @@ namespace invoice
                             Workbook SalaryWb1 = new Workbook(generalFolder + "company_salary.xlsx");
 
                             Worksheet SalarySheet1 = SalaryWb1.Worksheets[0];
+                            for (int i = 0; i < SalaryWb1.Worksheets.Count; i++)
+                            {
+                                if (SalaryWb1.Worksheets[i].Name == "一般")
+                                {
+                                    SalarySheet1 = SalaryWb1.Worksheets[i];
+                                }
+                            }
+
 
                             for (int i = 0; i < SalaryWb1.Worksheets.Count; i++)
                             {
@@ -1058,8 +1066,8 @@ namespace invoice
                 cell1 = cells1["F2"];
                 cell1.PutValue("Total");
 
-                
-                
+
+
                 for (int j = 0; j < titleTotalAmountList[i].companys.Count; j++)
                 {
                     cell1 = cells1[@$"A{companyIndex + 3}"];
@@ -1089,8 +1097,8 @@ namespace invoice
                 cell1 = cells1[@$"F1"];
                 cell1.PutValue(staffTotal);
             }
-                //--------------------------------------------------
-                for (int i = 0; i < titleTotalAmountList.Count;i++)
+            //--------------------------------------------------
+            for (int i = 0; i < titleTotalAmountList.Count; i++)
             {
                 int e = wb.Worksheets.Add();
                 Worksheet worksheet = wb.Worksheets[e];
@@ -1350,9 +1358,9 @@ namespace invoice
                             eachDutytotal += decimal.Parse(OTList[o].OTcompanySalary.ToString());
                         }
 
-                        
+
                         var checkTitle = titleTotalAmountList.Any(x => x.title == companyList[q].staffLists[i].titleDuty[e].title);
-                  
+
                         if (checkTitle == false)
                         {
                             titleTotalAmountList.Add(
@@ -1389,7 +1397,7 @@ namespace invoice
                                         amount = eachDutytotal
                                     });
                                 }
-                            }  
+                            }
                         }
 
 
@@ -1688,18 +1696,18 @@ namespace invoice
 
 
 
-                     /*   var checkTitle = titleTotalAmountList.Any(x => x.title.Contains(allStaffList[i].companyDuty[q].titleDuty[e].title));
+                        /*   var checkTitle = titleTotalAmountList.Any(x => x.title.Contains(allStaffList[i].companyDuty[q].titleDuty[e].title));
 
-                        if (checkTitle == false)
-                        {
-                            titleTotalAmountList.Add(
-                                new titleTotalAmount
-                                {
-                                    title = allStaffList[i].companyDuty[q].titleDuty[e].title,
-                                    staffs = new List<titleTotalAmountObj>()
-                                }
-                            );
-                        }*/
+                           if (checkTitle == false)
+                           {
+                               titleTotalAmountList.Add(
+                                   new titleTotalAmount
+                                   {
+                                       title = allStaffList[i].companyDuty[q].titleDuty[e].title,
+                                       staffs = new List<titleTotalAmountObj>()
+                                   }
+                               );
+                           }*/
 
                         bool checkExists = false;
                         for (int o = 0; o < titleTotalAmountList.Count; o++)
