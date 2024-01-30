@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -57,7 +56,7 @@ namespace invoice
         public static string invoiceDate = string.Empty;
         public static totalAmountObj companyTotalAmountList = new totalAmountObj();
         public static totalAmountObj staffTotalAmountList = new totalAmountObj();
-        public static string check1 = string.Empty;
+        public static string choice = string.Empty;
         public static List<titleTotalAmount> titleTotalAmountList = new List<titleTotalAmount>();
         static async Task Main(string[] args)
         {
@@ -66,9 +65,7 @@ namespace invoice
             {
 
                 Console.OutputEncoding = Encoding.Unicode;
-
-
-
+                 
 
                 if (!Directory.Exists(desktopFolder))
                 {
@@ -113,21 +110,16 @@ namespace invoice
                 }
 
 
-                string url = $"https://testsds123-669967cd5270.herokuapp.com/";
-                using var client = new HttpClient();
-                /* var response = client.GetAsync(url).GetAwaiter().GetResult();
-                 var content = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();// response value*/
-
                 var content = "success";
                 Console.WriteLine("將 timesheet.xlsx 放入資料夾 " + timeSheetFolder);
                 Console.WriteLine("將 logo.jpg和company_salary.xlsx和staff_salary.xlsx和bank.xlsx 放入資料夾 " + generalFolder);
                 Console.WriteLine("1 = Gen Company Invoice, 2 = Gen Staff Invoice, 3 = Gen HtmlCode");
                 // string content = "success";
-                check1 = Console.ReadLine();
+                choice = Console.ReadLine();
                 if (content == "success")
                 {
 
-                    if (check1 == "3")
+                    if (choice == "3")
                     {
                         var renderer = new HtmlToPdf();
                         DirectoryInfo d = new DirectoryInfo(inputHtmlFolder);
@@ -142,16 +134,13 @@ namespace invoice
                         }
 
                     }
-                    if (check1 == "1" || check1 == "2")
+                    if (choice == "1" || choice == "2")
                     {
 
 
 
                         List<string> JobIdList = new List<string>();
-
-                        //string content = "success";
-
-
+                          
                         Workbook wb = new Workbook(timeSheetFolder + "timesheet.xlsx");
 
 
@@ -164,8 +153,7 @@ namespace invoice
                             company company = new company();
 
                             Worksheet worksheet = wb.Worksheets[v];
-                            var ggg = worksheet.IsVisible;
-
+                    
                             if (worksheet.IsVisible == false)
                             {
                                 Console.WriteLine("Hidden Table");
@@ -333,12 +321,7 @@ namespace invoice
                                     {
                                         for (int i = 7; i <= rows; i++)
                                         {
-                                            // var dutytime = worksheet.Cells[0, j];
-                                            /*    Console.Write(worksheet.Cells[i+1, 1].Value);
-
-                                                Console.Write(worksheet.Cells[i+1, j].Value + " | ");*/
-
-                                            // Console.WriteLine(worksheet.Cells[i + 1, j].Value);
+                                     
                                             var staffName = worksheet.Cells[i, j].Value != null ? worksheet.Cells[i, j].Value.ToString().Trim() : "";
 
 
@@ -407,7 +390,7 @@ namespace invoice
                                                     {
                                                         if (staffNameList[g].name.Equals(checkMoreThanOneStaff1[q]))
                                                         {
-                                                            //var dutyHours = 
+                                                           
                                                             var date1 = worksheet.Cells[i, 1].Value;
                                                             var title = worksheet.Cells[i, titleColumn].Value;
                                                             var dutyTime = worksheet.Cells[6, j].Value.ToString();
@@ -675,11 +658,7 @@ namespace invoice
 
                             for (int i = 0; i < staffNameList.Count; i++)
                             {
-                                /* if (i == 2)
-                                 {
-                                     var ggw = "";
-                                 }*/
-
+                               
                                 for (int e = 0; e < staffNameList[i].duty.Count; e++)
                                 {
 
@@ -730,19 +709,18 @@ namespace invoice
                                             if (specialEventsList[p].eventT8orOT.ToUpper() == "T8")
                                             {
                                                 staffNameList[i].duty[e].T8reason = specialEventsList[p].reason;
-                                                /*  salary *= 1.5;
-                                                  companySalary *= 2;*/
+                                           
                                                 staffNameList[i].duty[e].T8 = true;
 
-                                                staffNameList[i].duty[e].T8StaffRemovesalary = Math.Round(Convert.ToDouble((salary / (Convert.ToDouble(staffNameList[i].duty[e].dutyHours) * 60)) * Convert.ToDouble(specialEventsList[p].hours)),1);
-                                                staffNameList[i].duty[e].T8StaffAddsalary = Math.Round(Convert.ToDouble((salary / (Convert.ToDouble(staffNameList[i].duty[e].dutyHours) * 60)) * Convert.ToDouble(specialEventsList[p].hours) * 1.5),1);
-                                                staffNameList[i].duty[e].T8CompanyRemoveSalary = Math.Round(Convert.ToDouble((companySalary / (Convert.ToDouble(staffNameList[i].duty[e].dutyHours) * 60)) * Convert.ToDouble(specialEventsList[p].hours)),1);
+                                                staffNameList[i].duty[e].T8StaffRemovesalary = Math.Round(Convert.ToDouble((salary / (Convert.ToDouble(staffNameList[i].duty[e].dutyHours) * 60)) * Convert.ToDouble(specialEventsList[p].hours)), 1);
+                                                staffNameList[i].duty[e].T8StaffAddsalary = Math.Round(Convert.ToDouble((salary / (Convert.ToDouble(staffNameList[i].duty[e].dutyHours) * 60)) * Convert.ToDouble(specialEventsList[p].hours) * 1.5), 1);
+                                                staffNameList[i].duty[e].T8CompanyRemoveSalary = Math.Round(Convert.ToDouble((companySalary / (Convert.ToDouble(staffNameList[i].duty[e].dutyHours) * 60)) * Convert.ToDouble(specialEventsList[p].hours)), 1);
                                                 staffNameList[i].duty[e].T8CompanyAddSalary = Math.Round(Convert.ToDouble((companySalary / (Convert.ToDouble(staffNameList[i].duty[e].dutyHours) * 60)) * Convert.ToDouble(specialEventsList[p].hours) * 2), 1);
 
 
                                                 staffNameList[i].duty[e].T8CompanySalaryFormula = @$"(正常收費${companySalary} + ${staffNameList[i].duty[e].T8CompanyRemoveSalary}({specialEventsList[p].hours}分鐘))";
                                                 staffNameList[i].duty[e].T8StaffSalaryFormula = @$"(正常收費${salary} + ${staffNameList[i].duty[e].T8StaffRemovesalary}({specialEventsList[p].hours}分鐘))";
-                                         
+
                                                 t8Staffsalary += Convert.ToDecimal(salary) + Convert.ToDecimal(staffNameList[i].duty[e].T8StaffRemovesalary);
                                                 t8CompanySalary += Convert.ToDecimal(companySalary) + Convert.ToDecimal(staffNameList[i].duty[e].T8CompanyRemoveSalary);
 
@@ -752,11 +730,7 @@ namespace invoice
 
                                                 staffNameList[i].totalSalaryForCompany += t8CompanySalary;
                                                 staffNameList[i].totalStaffSalary += t8Staffsalary;
-                                                /*              staffNameList[i].totalSalaryForCompany +=  Convert.ToDecimal(staffNameList[i].duty[e].T8CompanyAddSalary);
-                                                              staffNameList[i].totalStaffSalary -= Convert.ToDecimal(staffNameList[i].duty[e].T8StaffRemovesalary);
-                                                              staffNameList[i].totalSalaryForCompany -= Convert.ToDecimal(staffNameList[i].duty[e].T8CompanyRemoveSalary);
-                                                              staffNameList[i].totalStaffSalary += Convert.ToDecimal(staffNameList[i].duty[e].T8StaffAddsalary);*/
-
+                                              
                                             }
                                             else if (specialEventsList[p].eventT8orOT.ToUpper() == "OT")
                                             {
@@ -775,7 +749,7 @@ namespace invoice
                                                 if (staffNameList[i].duty[e].T8 == true)
                                                 {
                                                     revisedSalary = Convert.ToInt32((Convert.ToDouble(minutes) + Convert.ToDouble(specialEventsList[p].hours)) / Convert.ToDouble(minutes) * Convert.ToInt32(t8Staffsalary));
-                                                    revisedCompanySalary = Math.Round((minutes + Convert.ToInt32(specialEventsList[p].hours)) / minutes * Convert.ToInt32(t8CompanySalary),1);
+                                                    revisedCompanySalary = Math.Round((minutes + Convert.ToInt32(specialEventsList[p].hours)) / minutes * Convert.ToInt32(t8CompanySalary), 1);
                                                     staffNameList[i].duty[e].OTCompanySalaryFormula = @$"({Math.Floor(minutes)}分鐘 {addOrNo} {specialEventsList[p].hours}分鐘) / {Math.Floor(minutes)}分鐘 * T8收費{t8CompanySalary}";
                                                     staffNameList[i].duty[e].OTStaffSalaryFormula = @$"({Math.Floor(minutes)}分鐘 {addOrNo} {specialEventsList[p].hours}分鐘) / {Math.Floor(minutes)}分鐘 * T8收費{t8Staffsalary}";
                                                     staffNameList[i].duty[e].t8CompanySalary = 0;
@@ -930,7 +904,7 @@ namespace invoice
 
 
                         await company_invoice(companyList);
-                        // Console.WriteLine("company invoice processing");
+                      
                         for (int o = 0; o < allStaffList.Count; o++)
                         {
                             for (int p = 0; p < allStaffList[o].companyDuty.Count; p++)
@@ -954,10 +928,7 @@ namespace invoice
 
                             }
                         }
-                        // Console.WriteLine("company invoice processing Done");
-                        /*                 Console.WriteLine("要staff invoice 輸入 1, 不要staff invoice 輸入 2");
-                                         string check2 = Console.ReadLine();*/
-
+                  
                         await allStaffInvoice(allStaffList);
                         Console.WriteLine("BankAccount Execl Processing");
                         bankAccount(allStaffList);
@@ -994,7 +965,7 @@ namespace invoice
         {
             Workbook wb = new Workbook();
 
-            // 得到第一個工作表。
+    
             Worksheet sheet1 = wb.Worksheets[0];
             sheet1.Name = "TotalAmountWithStaffOtherFee";
             sheet1.Cells.SetColumnWidth(0, 30.0);
@@ -1004,10 +975,10 @@ namespace invoice
             sheet1.Cells.SetColumnWidth(4, 10.0);
             sheet1.Cells.SetColumnWidth(5, 10.0);
             sheet1.Cells.SetColumnWidth(6, 10.0);
-            // 獲取工作表的單元格集合
+ 
             Cells cells = sheet1.Cells;
 
-            // 為單元格設置值
+        
             Aspose.Cells.Cell cell = cells["A2"];
             cell.PutValue("院舍");
             cell = cells["B2"];
@@ -1168,7 +1139,7 @@ namespace invoice
         {
             Workbook wb = new Workbook();
 
-            // 得到第一個工作表。
+     
             Worksheet sheet1 = wb.Worksheets[0];
             sheet1.Cells.SetColumnWidth(1, 20.0);
             sheet1.Cells.SetColumnWidth(2, 30.0);
@@ -1177,10 +1148,10 @@ namespace invoice
             sheet1.Cells.SetColumnWidth(5, 10.0);
             sheet1.Cells.SetColumnWidth(6, 10.0);
             sheet1.Cells.SetColumnWidth(7, 10.0);
-            // 獲取工作表的單元格集合
+    
             Cells cells = sheet1.Cells;
 
-            // 為單元格設置值
+     
             Aspose.Cells.Cell cell = cells["A1"];
             cell.PutValue("中文名");
             cell = cells["B1"];
@@ -1247,7 +1218,7 @@ namespace invoice
         public static async Task<string> company_invoice(List<company> companyList)
         {
             var renderer = new HtmlToPdf();
-            if (check1 == "1")
+            if (choice == "1")
             {
                 Console.WriteLine("company invoice processing");
             }
@@ -1255,7 +1226,7 @@ namespace invoice
 
             for (int q = 0; q < companyList.Count; q++)
             {
-                if (check1 == "1")
+                if (choice == "1")
                 {
                     Console.WriteLine("company invoice " + q + "/" + companyList.Count);
                 }
@@ -1550,7 +1521,7 @@ namespace invoice
           </body>
         </html>";
                 companyList[q].invoiceTotalSalary = allTotal.ToString();
-                if (check1 == "1")
+                if (choice == "1")
                 {
                     var pdf = await renderer.RenderHtmlAsPdfAsync(html);
 
@@ -1585,7 +1556,7 @@ namespace invoice
                 decimal totalSalary = 0;
                 string body = string.Empty;
 
-                if (check1 == "2")
+                if (choice == "2")
                 {
                     Console.WriteLine(i + 1 + "/" + allStaffList.Count);
                     Console.WriteLine(allStaffList[i].name + " Processing");
@@ -1703,19 +1674,7 @@ namespace invoice
                         totalSalary += eachDutytotal;
 
 
-
-                        /*   var checkTitle = titleTotalAmountList.Any(x => x.title.Contains(allStaffList[i].companyDuty[q].titleDuty[e].title));
-
-                           if (checkTitle == false)
-                           {
-                               titleTotalAmountList.Add(
-                                   new titleTotalAmount
-                                   {
-                                       title = allStaffList[i].companyDuty[q].titleDuty[e].title,
-                                       staffs = new List<titleTotalAmountObj>()
-                                   }
-                               );
-                           }*/
+ 
 
                         bool checkExists = false;
                         for (int o = 0; o < titleTotalAmountList.Count; o++)
@@ -1876,7 +1835,7 @@ namespace invoice
                 staffTotalAmountList.eachTotal.Add(new eachTotal { name = allStaffList[i].name, total = totalSalary });
 
 
-                if (check1 == "2")
+                if (choice == "2")
                 {
                     string html = $@" <!DOCTYPE html>
         <html>
@@ -1971,7 +1930,7 @@ namespace invoice
         {
             Workbook wb = new Workbook();
 
-            // 得到第一個工作表。
+          
             Worksheet sheet1 = wb.Worksheets[0];
             sheet1.Cells.SetColumnWidth(1, 20.0);
             sheet1.Cells.SetColumnWidth(2, 30.0);
@@ -1980,10 +1939,10 @@ namespace invoice
             sheet1.Cells.SetColumnWidth(5, 10.0);
             sheet1.Cells.SetColumnWidth(6, 10.0);
             sheet1.Cells.SetColumnWidth(7, 10.0);
-            // 獲取工作表的單元格集合
+          
             Cells cells = sheet1.Cells;
 
-            // 為單元格設置值
+          
             Aspose.Cells.Cell cell = cells["A1"];
             cell.PutValue("院舍名稱");
             cell = cells["B1"];
@@ -2008,8 +1967,7 @@ namespace invoice
                 cell.PutValue(companyList[i].invoiceTotalSalary);
 
             }
-
-            // 保存 Excel 文件。
+             
             wb.Save(outputFolder + "company_output.xlsx", SaveFormat.Xlsx);
 
             return "";
